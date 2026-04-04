@@ -1,0 +1,179 @@
+# TODOS - Mission Control Project
+
+## Phase 1 — Foundation (State, Store, Persistence)
+- [ ] Create `src/store.js` — single source of truth (tasks, projects, activity, team, comments, subtasks)
+- [ ] Pub/Sub event bus — task change = auto update across all screens
+- [ ] localStorage persistence — refresh pe state survive kare
+- [ ] Replace ALL hardcoded arrays across every component → store-based
+- [ ] Real auto-ID generation (no more static IDs)
+- [ ] Export / Import state (backup JSON download/upload)
+- [ ] Factory Reset button (System screen)
+
+## Phase 2 — Task Dependencies *(PRIORITY — pending execution)*
+- [ ] Add dependency system: blocking/blocked-by relationships between tasks
+- [ ] Visual dependency indicator on task cards (🔒 icon for blocked tasks)
+- [ ] Grey out blocked tasks whose blockers are still in backlog
+- [ ] Auto-unlock task when blocker moves to Done
+- [ ] Dependency chain validation (prevent circular dependencies)
+- [ ] Dependency view mode (graph or list of chains)
+- [ ] Notification when a blocked task gets unlocked
+- [ ] Blocker count display on task card ("Blocked by 2 tasks")
+
+## Phase 3 — Due Dates
+- [ ] Add `dueDate` field to every task
+- [ ] Overdue = red pulse border + auto priority bump to "urgent"
+- [ ] Due today = yellow accent indicator
+- [ ] Done early = green sparkle indicator ⭐
+- [ ] Overdue count badge on board header
+- [ ] Calendar screen auto-syncs task due dates
+- [ ] Sort/filter: overdue | due-this-week | due-this-month | no-date
+
+## Phase 4 — Subtasks + Inline Expansion
+- [ ] Click task card = expand in-place (accordion, no modal)
+- [ ] Subtask checklist inside expanded card
+- [ ] Add subtask inline with text input
+- [ ] Subtask progress mini-bar on parent task card (collapsed view)
+- [ ] All subtasks done = parent auto-moves to Done (toggle on/off)
+- [ ] Subtask count on collapsed card ("3 subtasks • 2 done")
+
+## Phase 5 — Per-Task Comments (Rahul ↔ Aria Thread)
+- [ ] Comment bubble icon (💬) on each task card
+- [ ] Click = right slide panel opens with conversation thread
+- [ ] Role selector — send as **Rahul 🧑** or **Aria 🦞**
+- [ ] Flat threaded replies with timestamps
+- [ ] Read indicator ("✓ seen by Aria")
+- [ ] Comment count badge on collapsed card
+- [ ] Notes sub-section — private checklist on task (shared thread se alag)
+- [ ] All comments → ActivityFeed mein log entry
+
+## Phase 6 — AI Smart Suggestions
+- [ ] New Task modal — auto-suggest priority from title keywords
+- [ ] Auto-suggest assignee (Rahul vs Aria) based on task nature
+- [ ] Auto-suggest tags based on context
+- [ ] "Start this task?" nudge — backlog >5 + high priority
+- [ ] Backlog health warning ("{{n}} tasks stale — 7+ days no movement")
+- [ ] Stale task flag on card (🕐 icon)
+- [ ] Weekly summary card ("Rahul: {{x}} done, Aria: {{y}} done")
+
+## Phase 5B — Calendar Upgrade
+- [ ] Task ↔ Calendar two-way sync: taskDueDate → auto calendar event, calendar event → linked task
+- [ ] Color-code task events on calendar by priority (urgent=red, high=amber, medium=blue, low=green)
+- [ ] Click calendar event → open connected task details (slide-in or modal)
+- [ ] Drag task from TaskBoard onto Calendar date → auto set dueDate on task
+- [ ] Week view: time-blocked hourly grid (Google Calendar style, same dark theme)
+- [ ] Month view (current) → Week view → Agenda view toggle (top-right dropdown)
+- [ ] Agenda view: list of upcoming events + tasks sorted by date (mobile-friendly default)
+- [ ] Recurring events: "every 2 weeks Monday 10am", "every weekday 9:30am"
+- [ ] Recurring rule engine: daily, weekly, monthly, yearly, custom interval + end date option
+- [ ] Quick-add: double-click any calendar date → event creation modal
+- [ ] Smart templates: "Meeting" click → pre-fill type, duration, reminder fields
+- [ ] AI auto-schedule nudges: "{{n}} tasks due this week, Tuesday 10-12 is free"
+- [ ] AI conflict detection: "2 events overlap at this time"
+- [ ] AI nudge when free slot detected + pending tasks exist
+- [ ] Aria auto-mark ✅ on calendar when she completes a task overnight
+
+## Phase 5C — Team Screen Upgrade (Live Agent Orchestration)
+**Real Agent Tracking:**
+- [ ] Replace fake team members (Alex, Sarah...) → real agents: Rahul 🧑, Aria 🦞, active sub-agents
+- [ ] `src/agentRegistry.js` — central agent registry: id, name, role, status, model, task, assignee, startedAt, runtime, logs
+- [ ] Live status sync: poll `subagents list` every 10s → auto update store
+- [ ] Auto-detect new agent spawned → appear in Team grid live
+- [ ] Auto-detect agent completed/failed/killed → status update + badge
+- [ ] Agent type classification: developer | writer | designer | researcher | automation | reviewer
+
+**Real-Time Agent Cards:**
+- [ ] Desktop: grid layout with live status badges (🟢 running, 🟡 idle, 🔴 failed, ⚫ killed, 🔵 completed)
+- [ ] Animated pulse on running agents
+- [ ] Per card: agent name, role badge, current task, model, runtime ("14m"), CPU/RAM if available
+- [ ] Quick actions: [View Logs] [Send Message] [Kill] [Reassign Task]
+
+**Admin Dashboard (Right Panel):**
+- [ ] Stats: Total Agents, Running, Idle, Failed, Completed
+- [ ] Resource usage: CPU %, Memory MB, Uptime, Cost estimate
+- [ ] Recent events feed: "2m ago: TaskBoard Builder running"
+
+**Agent Actions:**
+- [ ] [+ Spawn Agent] → Modal: role, task, model, priority, auto-kill toggle
+- [ ] [Assign Task] → Select agent → pick from TaskBoard backlog
+- [ ] [Kill Agent] → Confirmation → cleanup
+- [ ] Bulk Pause / Bulk Kill / Restart Failed
+- [ ] Resource limit warning: "CPU > 70% — machine struggling"
+
+**Agent ↔ Task Linking:**
+- [ ] Team card click → connected TaskBoard task highlighted
+- [ ] TaskBoard card pe agent badge: "🤖 Aria (14m)"
+- [ ] Task done → agent auto-marks complete → Team card green
+
+**Smart Suggestions:**
+- [ ] "Backlog mein {{n}} tasks — {{n}} developer chahiye, spawn karu?"
+- [ ] "Zombie detected (running {{time}}, no progress) — kill karu?"
+- [ ] "Machine slow — recommend max 2 agents simultaneously"
+
+**Expandable Canvas / Snitch View:**
+- [ ] Expandable canvas panel on agent card double-click or [👁 Expand] button
+- [ ] Canvas shows agent's live workspace: code snippets, terminal output, file changes in real-time
+- [ ] Uses inline HTML rendering (iframe sandbox) — inspired by OpenClaw Canvas (A2UI protocol, port 18793)
+- [ ] Resizable panel: drag edges, snap to 50/50 or fullscreen
+- [ ] Auto-refresh every 5s with latest agent activity snapshot
+- [ ] Canvas shows: current file being edited, last command run, diff preview, error output
+- [ ] Tab toggle: Canvas view (visual) | Log view (terminal) | Chat view (conversation)
+- [ ] Close button collapses back to card grid
+- [ ] Multiple agents' canvases open simultaneously (tabbed)
+
+**Performance Scorecards:**
+- [ ] Real metrics per agent from store data:
+  - ✅ Success Rate: `completed / total_spawned` %
+  - ⏱ Avg Completion Time: "Last 5 tasks avg: {{n}} min"
+  - 🔥 Current Streak: "{{n}} tasks completed in a row"
+  - 💀 Fail Rate + Reason: "2 failures — model timeout / rate limit"
+  - ⭐ Quality Score: thumbs up/down per task completion
+- [ ] "Top Performer" badge on best agent this session
+- [ ] "At Risk" badge on agents with repeated failures
+
+**Skill Matrix + Auto-Routing:**
+- [ ] Per-agent capability tags: `react`, `css`, `python`, `research`, `writing`, `deploy`
+- [ ] Visual skill grid in expanded view (who knows what)
+- [ ] Task assign modal → auto skill match score ("Sub-2 best fit: 87% match")
+- [ ] Auto-suggest: "React task hai → Sub-1 available hai, 92% match — use karoge?"
+
+## Phase 9 — Calendar Productivity Heatmap _(Future)_
+- [ ] Calendar cell color intensity = tasks completed on that date (green gradient: dark=productive, grey=none, red=overdue missed)
+- [ ] Weekly summary bar: "{{x}} tasks done, {{y}} overdue, {{z}} meetings"
+- [ ] Monthly summary card with completion rate percentage
+- [ ] Streak indicator: "🔥 {{n}} day productive streak"
+- [ ] Personal best / worst day of week analysis
+- [ ] Export heatmap data as image or CSV
+
+## Phase 7 — Cross-Screen Sync
+- [ ] Task Done → connected Project progress bar auto-update
+- [ ] ActivityFeed → real event-based (kill 12s fake interval)
+- [ ] Calendar → due dates from TaskStore (dynamic events)
+- [ ] Team screen → task completion stats from real store data
+- [ ] Memories → integrate with workspace memory files (read + write)
+- [ ] "Office" screen implement (abhi "Coming Soon")
+- [ ] Keyboard shortcuts (N=new task, D=done, /=search, Esc=close)
+- [ ] Toast notifications on major task actions
+- [ ] Vite build + bundle optimization
+
+## Phase 8 — Full Responsive Design
+- [ ] Audit all breakpoints: mobile (320-480), tablet (768), laptop (1024), desktop (1440+)
+- [ ] Sidebar: desktop = visible left panel → mobile/tablet = hamburger menu (☰ toggle)
+  - [ ] Hamburger button in top-left header
+  - [ ] Sidebar slides in as drawer overlay with backdrop dim
+  - [ ] Close on backdrop tap or X button or swipe left
+  - [ ] Hamburger → open animation (slide from left, 200ms ease)
+- [ ] Activity Feed: desktop = fixed right sidebar → mobile/tablet = hamburger bottom sheet
+  - [ ] Activity bell icon (🔔) in top-right header with unread badge
+  - [ ] Bell click = bottom sheet slides up (70vh height)
+  - [ ] Swipe down to dismiss
+  - [ ] Close on backdrop tap
+- [ ] TaskBoard: 4-column → 2-column (tablet) → 1-column scroll (mobile)
+- [ ] Projects: 3-column grid → 2 → 1
+- [ ] Team: 3-column cards → 1-column, detail panel → full-screen overlay
+- [ ] Calendar: full grid → scrollable compact → agenda list (mobile)
+- [ ] Docs: two-pane → single-pane with back navigation
+- [ ] Memories: two-pane → single-pane stack
+- [ ] All task card text sizes responsive (clamp or breakpoint-based)
+- [ ] Touch-friendly tap targets (min 44x44px on mobile)
+- [ ] Horizontal scroll for Kanban columns on small screens (optional)
+- [ ] Test on: Chrome mobile emulator, real phone browser, tablet
