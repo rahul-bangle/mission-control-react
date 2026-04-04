@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useKeyboard, registerShortcut } from './useKeyboard'
+import { useTheme } from './ThemeContext'
 import Sidebar from './components/Sidebar'
 import TaskBoard from './components/TaskBoard'
 import Calendar from './components/Calendar'
@@ -29,6 +30,7 @@ function App({ store }) {
   const [screen, setScreen] = useState('tasks')
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [activityOpen, setActivityOpen] = useState(true)
+  const { theme, toggle } = useTheme()
 
   const screens = {
     tasks: <TaskBoard />,
@@ -49,15 +51,16 @@ function App({ store }) {
   })
 
   return (
-    <div className="flex h-screen bg-[#0a0a0a] text-white font-mono relative">
+    <div className="flex h-screen font-mono relative" style={{ background: 'var(--bg-app)', color: 'var(--text-primary)' }}>
       {/* Overlay hamburger to open sidebar when closed */}
       {!sidebarOpen && (
         <button
           onClick={() => setSidebarOpen(true)}
           className="absolute top-4 left-4 z-40 p-2 rounded bg-[#111111] border border-[#333]"
           aria-label="Open sidebar"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-input)' }}
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--text-primary)' }}>
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
@@ -72,9 +75,20 @@ function App({ store }) {
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 p-8 overflow-auto">
-          {screens[screen] || <div style={{ color: '#555' }}>Coming soon: {screen}</div>}
+          {screens[screen] || <div style={{ color: 'var(--text-tertiary)' }}>Coming soon: {screen}</div>}
         </div>
       </div>
+
+      {/* Theme Toggle */}
+      <button
+        onClick={toggle}
+        className="fixed bottom-6 right-6 z-50 p-3 rounded-full transition-all hover:scale-110"
+        style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-card)', border: '1px solid var(--border-default)' }}
+        aria-label="Toggle theme"
+        title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+      >
+        <span style={{ fontSize: '18px' }}>{theme === 'dark' ? '☀️' : '🌙'}</span>
+      </button>
 
       <ActivityFeed />
     </div>

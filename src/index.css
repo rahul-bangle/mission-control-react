@@ -1,11 +1,150 @@
 @import "tailwindcss";
 
+@font-face { font-family: '-apple-system'; src: local('SF Pro Text'), local('Segoe UI'), local('Roboto'), local('Arial'); }
+
+/* ── CSS Variables: Dark (default) & Light ─────────────────────────── */
+:root {
+  /* Dark theme (default) */
+  --bg-app: #0a0a0a;
+  --bg-sidebar: #111111;
+  --bg-card: #111111;
+  --bg-surface: #1a1a1a;
+  --bg-surface-2: #252525;
+  --bg-input: #1a1a1a;
+  --bg-pill-bg: #1a1a1a;
+  --bg-column-header: #1a1a1a;
+  --bg-hover: #1a1a1a;
+  --bg-selected: #1a1a1a40;
+  --bg-sidebar-selected: #252525;
+
+  --border-default: #1a1a1a;
+  --border-card: #2a2a2a;
+  --border-soft: #1a1a1a;
+  --border-sidebar: #1a1a1a;
+  --border-input: #333;
+
+  --text-primary: #ffffff;
+  --text-secondary: #888888;
+  --text-tertiary: #555555;
+  --text-disabled: #333333;
+
+  --accent: #19c3ff;
+  --accent-hover: #12a8dd;
+
+  /* System colors - Dark */
+  --color-urgent: #ef4444;
+  --color-urgent-bg: #ef444420;
+  --color-high: #f59e0b;
+  --color-high-bg: #f59e0b20;
+  --color-medium: #3b82f6;
+  --color-medium-bg: #3b82f620;
+  --color-low: #22c55e;
+  --color-low-bg: #22c55e20;
+  --color-done: #22c55e;
+  --color-done-bg: #22c55e20;
+  --color-review: #a855f7;
+  --color-review-bg: #a855f720;
+  --color-deadline: #ef4444;
+  --color-deadline-bg: #ef444420;
+  --color-calendar: #5ac8fa;
+  --color-calendar-bg: #5ac8fa20;
+  --color-tag-bg: #1a1a1a;
+  --color-tag-text: #888888;
+  --color-progress-bg: #1a1a1a;
+
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-soft: none;
+
+  --radius-card: 10px;
+  --radius-pill: 8px;
+  --radius-small: 6px;
+  --radius-input: 8px;
+
+  --animation-pulse: 0 0 0 0 rgba(239, 68, 68, 0);
+  --animation-pulse-half: 0 0 8px rgba(239, 68, 68, 0.3);
+  --animation-sparkle: 0 0 0 0 rgba(34, 197, 94, 0);
+  --animation-sparkle-half: 0 0 8px rgba(34, 197, 94, 0.3);
+}
+
+html.light {
+  /* Light theme - Apple HIG */
+  --bg-app: #F5F5F7;
+  --bg-sidebar: #FAFAFA;
+  --bg-card: #FFFFFF;
+  --bg-surface: #F2F2F7;
+  --bg-surface-2: #E5E5EA;
+  --bg-input: #F2F2F7;
+  --bg-pill-bg: #F2F2F7;
+  --bg-column-header: #F2F2F7;
+  --bg-hover: #F2F2F7;
+  --bg-selected: #007AFF1F;
+  --bg-sidebar-selected: #007AFF1F;
+
+  --border-default: #E5E5EA;
+  --border-card: #E5E5EA;
+  --border-soft: #E5E5EA;
+  --border-sidebar: #E5E5EA;
+  --border-input: transparent;
+
+  --text-primary: #1C1C1E;
+  --text-secondary: #8E8E93;
+  --text-tertiary: #C7C7CC;
+  --text-disabled: #D1D1D6;
+
+  --accent: #007AFF;
+  --accent-hover: #0066D6;
+
+  /* System colors - Light (Apple official) */
+  --color-urgent: #FF3B30;
+  --color-urgent-bg: #FF3B301F;
+  --color-high: #FF9500;
+  --color-high-bg: #FF95001F;
+  --color-medium: #007AFF;
+  --color-medium-bg: #007AFF1F;
+  --color-low: #34C759;
+  --color-low-bg: #34C7591F;
+  --color-done: #34C759;
+  --color-done-bg: #34C7591F;
+  --color-review: #AF52DE;
+  --color-review-bg: #AF52DE1F;
+  --color-deadline: #FF3B30;
+  --color-deadline-bg: #FF3B301F;
+  --color-calendar: #5AC8FA;
+  --color-calendar-bg: #5AC8FA1F;
+  --color-tag-bg: #F2F2F7;
+  --color-tag-text: #8E8E93;
+  --color-progress-bg: #E5E5EA;
+
+  --shadow-card: 0 2px 12px rgba(0,0,0,0.08);
+  --shadow-soft: 0 1px 4px rgba(0,0,0,0.04);
+
+  --radius-card: 12px;
+  --radius-pill: 20px;
+  --radius-small: 8px;
+  --radius-input: 10px;
+
+  --animation-pulse: 0 0 0 0 rgba(255, 59, 48, 0);
+  --animation-pulse-half: 0 0 8px rgba(255, 59, 48, 0.3);
+  --animation-sparkle: 0 0 0 0 rgba(52, 199, 89, 0);
+  --animation-sparkle-half: 0 0 8px rgba(52, 199, 89, 0.3);
+}
+
+/* ── Global resets ─────────────────────────────────────────────────── */
+* { font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+
+/* ── Keyframes (theme-aware) ───────────────────────────────────────── */
 @keyframes pulse-red {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-  50% { box-shadow: 0 0 8px rgba(239, 68, 68, 0.3); }
+  0%, 100% { box-shadow: var(--animation-pulse); }
+  50% { box-shadow: var(--animation-pulse-half); }
 }
 
 @keyframes sparkle-green {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
-  50% { box-shadow: 0 0 8px rgba(34, 197, 94, 0.3); }
+  0%, 100% { box-shadow: var(--animation-sparkle); }
+  50% { box-shadow: var(--animation-sparkle-half); }
 }
+
+/* ── Scrollbar (both themes) ──────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--text-tertiary); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }

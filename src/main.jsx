@@ -10,10 +10,14 @@ window._missionControlToast = (message, type, duration) => {
   window.dispatchEvent(new CustomEvent('toast', { detail: { message, type, duration } }))
 }
 
+import { ThemeProvider } from './ThemeContext'
+
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <ToastProvider>
-    <StoreProvider>
-      <App />
-    </StoreProvider>
-  </ToastProvider>
+  <ThemeProvider>
+    <ToastProvider>
+      <StoreProvider>
+        <App />
+      </StoreProvider>
+    </ToastProvider>
+  </ThemeProvider>
 )
