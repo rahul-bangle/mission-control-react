@@ -1,3 +1,88 @@
+# Secrets — NEVER commit
+.env
+*.env*
+.env.local
+.env.production
+*.key
+*.pem
+
+# Dependencies
+node_modules
+dist
+dist-ssr
+lib/
+*.local
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+python_deps/
+
+# Build artifacts
+*.html (except public/)
+!public/index.html
+
+# Session logs (temporary)
+session-logs/
+
+# Scripts/Python files (dev artifacts)
+*.py
+bot*.py
+build_digest.py
+daily_digest.txt
+email_raw.txt
+extract*.py
+fetch_digest.py
+gateway-monitor-service.ps1
+gateway_control.bat
+gmail*.py
+*extract*.py
+openclaw_monitor.py
+parse*.py
+server*.js
+set-*.ps1
+python*.py
+test*.py
+telegram*.py
+agent_router.py
+instructions.txt
+taaft_emails_report.txt
+taaft_emails_report.md
+
+# Temp files
+*.tmp
+*.bak
+mission-control-qr.html
+mission-control.html
+reddit_pm_fetcher.html
+ph_leaderboard.html
+ph_daily_fetcher.html
+ph_apr1.html
+ph_attempt.html
+setup-telegram-control.md
+telegram-browser-pair.html
+
+# Large binaries
+*.zip
+*.tar.gz
+*.exe
+*.msi
+
+# Memory archives (kept local only)
+memory/archive/
+
+# OpenClaw internal
+.openclaw/
+
+# Research (temporary workspace)
+research/
+telegram_bot/
+
+# Nested git repo (MissionControl React — separate project)
+mission-control-react/
+
 # Logs
 logs
 *.log
@@ -6,12 +91,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-
-node_modules
-dist
-dist-ssr
-*.local
-.env
 
 # Editor directories and files
 .vscode/*

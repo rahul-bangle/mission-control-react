@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw Mission Control 🎯</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="mission-control">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <i class="fas fa-rocket"></i>
+                <h1>MISSION CONTROL</h1>
+            </div>
+            <div class="header-right">
+                <div class="system-indicator">
+                    <span id="uptime">00:23:45</span>
+                    <div class="status-dot active"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="tasks">
+                <i class="fas fa-tasks"></i>
+                <span>Task Board</span>
+            </button>
+            <button class="nav-tab" data-tab="calendar">
+                <i class="fas fa-calendar"></i>
+                <span>Calendar</span>
+            </button>
+            <button class="nav-tab" data-tab="projects">
+                <i class="fas fa-project-diagram"></i>
+                <span>Projects</span>
+            </button>
+            <button class="nav-tab" data-tab="memories">
+                <i class="fas fa-brain"></i>
+                <span>Memories</span>
+            </button>
+            <button class="nav-tab" data-tab="documents">
+                <i class="fas fa-file-alt"></i>
+                <span>Documents</span>
+            </button>
+            <button class="nav-tab" data-tab="team">
+                <i class="fas fa-users"></i>
+                <span>Team</span>
+            </button>
+            <button class="nav-tab" data-tab="office">
+                <i class="fas fa-laptop"></i>
+                <span>Office</span>
+            </button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Task Board -->
+            <div class="tab-content active" id="tasks">
+                <div class="task-board">
+                    <div class="kanban-column">
+                        <h3>To Do</h3>
+                        <div class="task-list" id="todo-list">
+                            <div class="task-card">
+                                <div class="task-avatar">H</div>
+                                <div class="task-content">
+                                    <h4>Build mission control dashboard</h4>
+                                    <p>Create modern interface with real-time updates</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kanban-column">
+                        <h3>In Progress</h3>
+                        <div class="task-list" id="progress-list"></div>
+                    </div>
+                    <div class="kanban-column">
+                        <h3>Review</h3>
+                        <div class="task-list" id="review-list"></div>
+                    </div>
+                    <div class="kanban-column">
+                        <h3>Done</h3>
+                        <div class="task-list" id="done-list"></div>
+                    </div>
+                </div>
+                <div class="activity-feed">
+                    <h3>Live Activity Feed</h3>
+                    <div id="activity-feed">
+                        <div class="activity-item">
+                            <span class="time">01:50:32</span>
+                            <span class="action">Henry started building mission control interface</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Screen -->
+            <div class="tab-content" id="calendar">
+                <div class="calendar-screen">
+                    <div class="calendar-header">
+                        <h2>Scheduled Tasks & Cron Jobs</h2>
+                        <div class="calendar-actions">
+                            <button class="btn-primary">+ New Cron Job</button>
+                        </div>
+                    </div>
+                    <div class="calendar-view">
+                        <div class="calendar-grid">
+                            <div class="calendar-day today">
+                                <div class="day-header">Today</div>
+                                <div class="scheduled-item">
+                                    <div class="time">10:00</div>
+                                    <div class="title">Daily Heartbeat Check</div>
+                                </div>
+                                <div class="scheduled-item">
+                                    <div class="time">18:00</div>
+                                    <div class="title">Portfolio Update</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Projects Screen -->
+            <div class="tab-content" id="projects">
+                <div class="projects-grid">
+                    <div class="project-card">
+                        <h3>🚀 Jobs Automator</h3>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 75%"></div>
+                        </div>
+                        <p>75% complete</p>
+                        <small>Last updated: 2 days ago</small>
+                    </div>
+                    <div class="project-card">
+                        <h3>📊 PRD Template V4</h3>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 45%"></div>
+                        </div>
+                        <p>45% complete</p>
+                        <small>Last updated: 1 week ago</small>
+                    </div>
+                    <div class="project-card">
+                        <h3>🏗️ PM Portfolio</h3>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 30%"></div>
+                        </div>
+                        <p>30% complete</p>
+                        <small>Last updated: 3 days ago</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Memories Screen -->
+            <div class="tab-content" id="memories">
+                <div class="memories-view">
+                    <div class="memories-filter">
+                        <input type="date" id="memory-date">
+                        <button class="btn-secondary">Today</button>
+                    </div>
+                    <div class="memories-list">
+                        <div class="memory-card">
+                            <div class="memory-date">Apr 3, 2026</div>
+                            <div class="memory-content">
+                                <p>Built mission control dashboard for OpenClaw</p>
+                                <p>Successfully created 7-screen interface</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documents Screen -->
+            <div class="tab-content" id="documents">
