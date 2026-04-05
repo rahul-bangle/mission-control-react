@@ -24,6 +24,14 @@ You wake up fresh each session. These files are your continuity:
 - **Daily notes:** `memory/YYYY-MM-DD.md` (create `memory/` if needed) — raw logs of what happened
 - **Long-term:** `MEMORY.md` — your curated memories, like a human's long-term memory
 
+### 🔴 CRITICAL RULES (ALL AGENTS — ALL CHANNELS)
+- **IMMEDIATELY write to MEMORY.md** when important things happen — don't wait for heartbeat/review
+- **Cross-session bridge:** Any session that reads this file MUST update it too. Memory.md is SHARED across Telegram, WebChat, Control UI, Coding groups, ALL bots
+- **After updating MEMORY.md or memory/*.md → auto git commit** (local only, NEVER push)
+- **Read MEMORY.md in main session** — this contains rules, decisions, context
+- **Size limits:** MEMORY.md under 5KB, daily files 30-day rotate, transcripts 7-day rotate
+- **If context hits 80% → alert user immediately**
+
 Capture what matters. Decisions, context, things to remember. Skip the secrets unless asked to keep them.
 
 ### 🧠 MEMORY.md - Your Long-Term Memory
