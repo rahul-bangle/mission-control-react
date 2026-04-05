@@ -45,10 +45,36 @@
 
 ## Tech Setup
 - Dell Inspiron 5559, i3-6100U, HDD, 16GB RAM, Windows 10
-- Model: Kimi K2 via Nvidia free tier (default)
 - OpenClaw config: E:\openclaw-data\openclaw.json
 - Telegram bot: @Openclaww_personalll_aii_bot
 - OpenClaw Browser: dark red Chrome profile (port 18800)
+
+### Models (18 total, 3 providers)
+**Active primary model (apr 6): Gemini 2.5 Flash (via Google AI Studio)**
+**Fallback chain: Qwen 3.6 Plus (OpenRouter) → Kimi K2 (Nvidia)**
+**Nvidia (6 free tier APIs):**
+- Kimi K2 → `kimi` alias
+- Phi-4 Mini → `phi` alias
+- DeepSeek-R1 → `r1` alias
+- Step 3.5 Flash → `flash` alias
+- Kimi K2 Thinking → `kimi-think` alias
+- Gemma 4 31B → `gemma` alias
+- Nemotron Nano 9B, 12B, 8B (agents / multimodal / backup)
+
+**OpenRouter (10 free models):**
+- Qwen 3.6 Plus (1M context) → `qwen` alias — PRIMARY model for Aria
+- Qwen3 Coder → `qwen-coder` alias
+- MiniMax M2.5 → `minimax` alias
+- DeepSeek V3.2 → `deepseek-v3` alias
+- Llama 3.3 70B → `llama-70b` alias
+- + 5 more (Gemma 3 12B, Mistral Nemo, GPT-oss-120B, Qwen3 Next 80B, Nemotron Nano 30B)
+
+### Agent Fleet (5 agents)
+1. **aria-main** → Qwen primary, fallbacks: Gemma-31B → Step Flash → DeepSeek V3.2 → Llama 70B
+2. **second-brain** → Gemma-31B primary, fallbacks: Qwen → Kimi K2 Thinking (think: high)
+3. **coder-qwen** → Qwen3 Coder primary, fallbacks: MiniMax → Nemotron 30B → Kimi K2
+4. **chat-fast** → Step Flash primary, fallbacks: Phi-4 → Nemotron 9B → Mistral Nemo (fast mode)
+5. **reasoner-gemma** → Gemma-31B primary, fallbacks: GPT-oss-120B → Qwen3 Next 80B → DeepSeek V3.2 → Kimi K2 Thinking (think: high)
 
 ## Preferences
 - AI name: Aria 🦞
