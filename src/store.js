@@ -42,7 +42,14 @@ async function loadFromSupabase() {
     ])
     return {
       ...seedState,
-      tasks: Array.isArray(tasks) ? tasks : [],
+      tasks: Array.isArray(tasks) ? tasks.map(t => {
+        const uiTask = { ...t }
+        if (uiTask.due_date !== undefined) {
+          uiTask.dueDate = uiTask.due_date
+          delete uiTask.due_date
+        }
+        return uiTask
+      }) : [],
       projects: Array.isArray(projects) ? projects : [],
       events: Array.isArray(events) ? events : [],
       team: Array.isArray(team) ? team : [],
@@ -61,7 +68,14 @@ async function syncToSupabase(changes) {
   const { tasks } = changes
   if (tasks) {
     for (const task of tasks) {
-      const { error } = await supabase.from('tasks').upsert(task)
+      const dbTask = { ...task }
+      if (dbTask.dueDate !== undefined) {
+        dbTask.due_date = dbTask.dueDate
+        delete dbTask.dueDate
+      }
+      delete dbTask.dependsOn
+      
+      const { error } = await supabase.from('tasks').upsert(dbTask)
       if (error) console.warn('[Supabase] Upsert error:', error)
     }
   }
