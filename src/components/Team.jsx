@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTheme } from '../ThemeContext'
 import { useStore } from '../StoreContext'
+import agentRegistry from '../agentRegistry'
 
 const departments = ['All', 'AI', 'Engineering', 'Design', 'Product', 'Infrastructure']
 const statusConfig = {
@@ -14,8 +15,30 @@ export default function Team() {
   const { isLight } = useTheme()
   const [filter, setFilter] = useState('All')
   const [selected, setSelected] = useState(null)
+  const [aiAgents, setAiAgents] = useState(agentRegistry.getAgents())
 
-  const team = state.team
+  useEffect(() => {
+    const unsub = agentRegistry.subscribe(agents => setAiAgents(agents))
+    return unsub
+  }, [])
+
+  const mappedAi = aiAgents.map(a => ({
+    id: a.id,
+    name: a.name,
+    role: 'AI Assistant',
+    department: 'AI',
+    status: a.status === 'idle' ? 'away' : (a.status === 'active' || a.status === 'running' ? 'online' : 'offline'),
+    avatar: '🤖',
+    avatarColor: '#10b981',
+    stats: { tasks: 0, completed: 0, efficiency: 100 },
+    location: 'Cloud',
+    joined: new Date(a.registeredAt || Date.now()).toLocaleDateString(),
+    currentProject: a.currentTask || 'Awaiting instructions...',
+    skills: a.skills || ['Node', 'React', 'Autonomous'],
+    rawAgent: a
+  }))
+
+  const team = [...state.team, ...mappedAi]
   const filteredTeam = filter === 'All' ? team : team.filter(m => m.department === filter)
   const onlineCount = team.filter(m => m.status === 'online').length
   const avgEfficiency = team.length > 0 ? Math.round(team.reduce((sum, m) => sum + m.stats.efficiency, 0) / team.length) : 0
@@ -111,7 +134,23 @@ export default function Team() {
                   ))}
                 </div>
                 <div className="mb-4"><span className="text-[10px] block mb-2" style={{ color: 'var(--text-secondary)' }}>Current Project</span><div className="px-3 py-2 rounded-lg text-[11px]" style={{ background: 'var(--bg-surface)', color: accent }}>{selected.currentProject}</div></div>
-                <div><span className="text-[10px] block mb-2" style={{ color: 'var(--text-secondary)' }}>Skills</span><div className="flex flex-wrap gap-1">{selected.skills.map(s => <span key={s} className="text-[9px] px-2 py-0.5 rounded-full" style={{ background: 'var(--bg-surface)', color: 'var(--text-secondary)' }}>{s}</span>)}</div></div>
+                <div><span className="text-[10px] block mb-2" style={{ color: 'var(--text-secondary)' }}>Skills</span><div className="flex flex-wrap gap-1">{(selected.skills || []).map(s => <span key={s} className="text-[9px] px-2 py-0.5 rounded-full" style={{ background: 'var(--bg-surface)', color: 'var(--text-secondary)' }}>{s}</span>)}</div></div>
+                
+                {selected.department === 'AI' && selected.rawAgent?.canvas ? (
+                  <div className="mt-6 flex flex-col min-h-[300px]">
+                    <div className="flex items-center gap-2 mb-2">
+                       <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#10b981' }}></span>
+                       <span className="text-[10px] font-bold tracking-wider" style={{ color: accent }}>LIVE CANVAS (REALTIME)</span>
+                    </div>
+                    <pre className="text-[9px] p-3 rounded-lg overflow-auto flex-1 font-mono whitespace-pre-wrap" style={{ 
+                        background: 'var(--bg-surface)', 
+                        color: 'var(--text-primary)', 
+                        border: '1px solid var(--border-default)' 
+                      }}>
+                      {typeof selected.rawAgent.canvas === 'string' ? selected.rawAgent.canvas : JSON.stringify(selected.rawAgent.canvas, null, 2)}
+                    </pre>
+                  </div>
+                ) : null}
               </div>
             </div>
           ) : (

@@ -31,23 +31,24 @@ const eventListeners = {}
 
 async function loadFromSupabase() {
   try {
-    const [{ data: tasks }, { data: projects }, { data: events }, { data: team }, { data: memories }, { data: docs }] = await Promise.all([
+    const [{ data: tasks }, { data: projects }, { data: events }, { data: team }, { data: memories }, { data: docs }, { data: activity }] = await Promise.all([
       supabase.from('tasks').select('*'),
       supabase.from('projects').select('*'),
       supabase.from('events').select('*'),
       supabase.from('team').select('*'),
       supabase.from('memories').select('*'),
       supabase.from('docs').select('*'),
+      supabase.from('activities').select('*').limit(50).order('timestamp', { ascending: false }),
     ])
     return {
       ...seedState,
-      tasks: tasks || [],
-      projects: projects || [],
-      events: events || [],
-      team: team || [],
-      memories: memories || [],
-      docs: docs || [],
-      activity: [],
+      tasks: Array.isArray(tasks) ? tasks : [],
+      projects: Array.isArray(projects) ? projects : [],
+      events: Array.isArray(events) ? events : [],
+      team: Array.isArray(team) ? team : [],
+      memories: Array.isArray(memories) ? memories : [],
+      docs: Array.isArray(docs) ? docs : [],
+      activity: Array.isArray(activity) ? activity : [],
       nextTaskId: 1,
     }
   } catch (e) {

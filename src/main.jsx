@@ -11,6 +11,10 @@ window._missionControlToast = (message, type, duration) => {
 }
 
 import { ThemeProvider } from './ThemeContext'
+import { initializeLiveActivities } from './lib/openclawRealtime'
+
+// Boot up the AI real-time listener
+initializeLiveActivities()
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <ThemeProvider>
