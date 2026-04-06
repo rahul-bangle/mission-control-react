@@ -31,13 +31,13 @@ export default function Memories() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <h1 className="text-[15px] font-bold tracking-wider" style={{ color: 'var(--text-primary)' }}>MEMORIES</h1>
-          <div className="flex" style={{ background: 'var(--bg-surface)', borderRadius: 'var(--radius-pill)', padding: '2px' }}>
-            {['all', 'work', 'personal', 'idea', 'decision', 'learning'].map(f => (
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+        <div className="flex items-center justify-between md:justify-start gap-4">
+          <h1 className="text-[16px] font-bold tracking-wider" style={{ color: 'var(--text-primary)' }}>MEMORIES</h1>
+          <div className="flex no-scrollbar overflow-x-auto" style={{ background: 'var(--bg-surface)', borderRadius: 'var(--radius-pill)', padding: '2px' }}>
+            {['all', 'work', 'personal', 'idea'].map(f => (
               <button key={f} onClick={() => setFilter(f)}
-                className="px-2 py-1 text-[10px] font-medium rounded-full transition-all"
+                className="px-3 py-1 text-[10px] font-medium rounded-full transition-all whitespace-nowrap"
                 style={{
                   background: filter === f ? accent : 'transparent',
                   color: filter === f ? (isLight ? '#fff' : 'var(--bg-app)') : 'var(--text-secondary)',
@@ -47,81 +47,108 @@ export default function Memories() {
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Search memories..."
-            className="px-3 py-2 text-[11px] rounded-lg w-48"
-            style={{ background: 'var(--bg-input)', border: '1px solid var(--border-input)', color: 'var(--text-primary)', outline: 'none' }} />
-          <button className="px-4 py-2 text-[11px] font-semibold rounded-lg transition-all" style={primaryBtn}>+ CAPTURE</button>
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1 md:flex-initial">
+             <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Search..."
+              className="px-3 py-2 text-[11px] rounded-lg w-full md:w-32 lg:w-48 outline-none"
+              style={{ background: 'var(--bg-input)', border: '1px solid var(--border-input)', color: 'var(--text-primary)' }} />
+          </div>
+          <button className="px-4 py-2 text-[11px] font-bold rounded-lg transition-all shadow-lg bg-accent text-white active:scale-95 whitespace-nowrap">
+            + CAPTURE
+          </button>
         </div>
       </div>
-      <div className="flex flex-1 gap-0 min-h-0 overflow-hidden">
+
+      <div className="flex flex-1 gap-0 md:gap-4 min-h-0 overflow-hidden relative">
         {/* Sidebar list */}
-        <div className="w-80 flex-shrink-0 flex flex-col rounded-lg overflow-hidden" style={{ background: 'var(--bg-sidebar)', border: isLight ? '1px solid var(--border-sidebar)' : 'none' }}>
-          <div className="p-4 border-b" style={{ borderColor: 'var(--border-default)' }}>
-            <div className="flex items-center justify-between">
-              <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>FILTERED</span>
-              <span className="text-[11px]" style={{ color: accent }}>{filteredMemories.length} entries</span>
-            </div>
+        <div className={`
+          w-full md:w-80 flex-shrink-0 flex flex-col rounded-xl overflow-hidden transition-all duration-300
+          ${selected ? 'hidden md:flex' : 'flex'}
+        `} style={{ background: 'var(--bg-sidebar)', border: '1px solid var(--border-card)' }}>
+          <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: 'var(--border-default)' }}>
+            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>Timeline</span>
+            <span className="text-[10px] font-bold text-accent">{filteredMemories.length} ENTRIES</span>
           </div>
-          <div className="flex-1 overflow-y-auto p-3">
+          <div className="flex-1 overflow-y-auto p-2 custom-scrollbar">
             {pinnedMemories.length > 0 && (
               <div className="mb-4">
-                <div className="text-[9px] uppercase tracking-widest px-2 py-1 mb-2" style={{ color: accent }}>PINNED</div>
-                {pinnedMemories.map(memory => <MemoryItem key={memory.id} memory={memory} selected={selected?.id === memory.id} onClick={() => setSelected(selected?.id === memory.id ? null : memory)} />)}
+                <div className="text-[9px] uppercase tracking-widest px-2 py-1 mb-1 opacity-50">Pinned</div>
+                {pinnedMemories.map(memory => <MemoryItem key={memory.id} memory={memory} selected={selected?.id === memory.id} onClick={() => setSelected(memory)} />)}
               </div>
             )}
             {regularMemories.length > 0 && (
               <div>
-                <div className="text-[9px] uppercase tracking-widest px-2 py-1 mb-2" style={{ color: 'var(--text-tertiary)' }}>TIMELINE</div>
-                {regularMemories.map(memory => <MemoryItem key={memory.id} memory={memory} selected={selected?.id === memory.id} onClick={() => setSelected(selected?.id === memory.id ? null : memory)} />)}
+                <div className="text-[9px] uppercase tracking-widest px-2 py-1 mb-1 opacity-50">Recent History</div>
+                {regularMemories.map(memory => <MemoryItem key={memory.id} memory={memory} selected={selected?.id === memory.id} onClick={() => setSelected(memory)} />)}
               </div>
             )}
           </div>
         </div>
+
         {/* Detail panel */}
-        <div className="flex-1 ml-4 rounded-lg overflow-hidden" style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-card)', border: '1px solid var(--border-card)' }}>
+        <div className={`
+          flex-1 md:rounded-xl overflow-hidden transition-all duration-300
+          fixed inset-0 z-[60] md:relative md:inset-auto md:z-auto md:flex
+          ${selected ? 'translate-x-0 opacity-100 flex' : 'translate-x-full opacity-0 md:translate-x-0 md:opacity-100 hidden'}
+        `} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-card)', boxShadow: 'var(--shadow-card)' }}>
           {selected ? (
-            <div className="h-full flex flex-col">
-              <div className="p-5 border-b" style={{ borderColor: 'var(--border-default)' }}>
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-2 h-2 rounded-full" style={{ background: categories[selected.category]?.color || 'var(--accent)' }} />
-                  <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: categories[selected.category]?.bg || 'var(--accent-bg)', color: categories[selected.category]?.color || 'var(--accent)' }}>
-                    {categories[selected.category]?.label || 'Uncategorized'}
-                  </span>
-                  {selected.pinned && <span className="text-[10px]" style={{ color: 'var(--color-high)' }}>★ PINNED</span>}
+            <div className="h-full flex flex-col w-full">
+              <div className="p-4 md:p-6 border-b flex items-center justify-between" style={{ borderColor: 'var(--border-default)', background: 'var(--bg-surface)/30' }}>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => setSelected(null)} className="md:hidden p-2 -ml-2 text-secondary hover:text-primary transition-colors">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                  </button>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase" style={{ background: categories[selected.category]?.bg, color: categories[selected.category]?.color }}>
+                        {selected.category}
+                      </span>
+                      <span className="text-[9px] opacity-40 font-mono">{selected.date}</span>
+                    </div>
+                    <h2 className="text-[15px] font-bold" style={{ color: 'var(--text-primary)' }}>{selected.title}</h2>
+                  </div>
                 </div>
-                <h2 className="text-[16px] font-bold mb-1" style={{ color: 'var(--text-primary)' }}>{selected.title}</h2>
-                <div className="flex items-center gap-3 text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                  <span>{selected.date}</span><span>•</span><span>{selected.time}</span>
+                <div className="flex gap-2">
+                   <button className="p-2 rounded-lg border hover:bg-surface transition-all" style={{ borderColor: 'var(--border-default)' }}>
+                     <svg className="w-4 h-4 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                   </button>
                 </div>
               </div>
-              <div className="flex-1 overflow-y-auto p-5">
-                <p className="text-[12px] leading-relaxed mb-6" style={{ color: 'var(--text-secondary)' }}>{selected.excerpt}</p>
+              <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar">
+                <p className="text-[13px] leading-relaxed mb-8 opacity-80" style={{ color: 'var(--text-primary)' }}>{selected.excerpt}</p>
                 {selected.messages.length > 0 && (
-                  <div className="space-y-4">
-                    <h3 className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>CONVERSATION</h3>
+                  <div className="space-y-6">
+                    <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-accent border-b pb-2 flex items-center gap-2">
+                       <span className="w-4 h-[1px] bg-accent"></span>
+                       Source Conversation
+                    </h3>
                     {selected.messages.map((msg, i) => (
-                      <div key={i} className="flex gap-3">
-                        <div className="w-6 h-6 rounded-full flex items-center justify-center text-[8px] font-bold flex-shrink-0 mt-0.5"
-                          style={{ background: 'var(--bg-surface)', color: 'var(--text-secondary)' }}>{msg.role[0]}</div>
-                        <div className="flex-1">
-                          <div className="text-[11px] font-medium mb-1" style={{ color: accent }}>{msg.role}</div>
-                          <div className="text-[12px] leading-relaxed" style={{ color: 'var(--text-primary)' }}>{msg.text}</div>
+                      <div key={i} className={`flex gap-3 group`}>
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5 border"
+                          style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-soft)', color: msg.role === 'rahul' ? 'var(--text-primary)' : accent }}>
+                          {msg.role[0].toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[10px] font-bold mb-1 opacity-40 uppercase tracking-tighter" style={{ color: 'var(--text-primary)' }}>{msg.role}</div>
+                          <div className="text-[13px] leading-relaxed p-3 rounded-xl border bg-surface/30 group-hover:bg-surface/50 transition-all" style={{ borderColor: 'var(--border-soft)' }}>{msg.text}</div>
                         </div>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
-              <div className="p-4 border-t flex gap-2" style={{ borderColor: 'var(--border-default)' }}>
-                {selected.tags.map(tag => <span key={tag} className="text-[10px] px-2 py-1 rounded-full"
-                  style={{ background: 'var(--bg-surface)', color: 'var(--text-secondary)', border: isLight ? 'none' : '1px solid var(--border-default)' }}>#{tag}</span>)}
+              <div className="p-4 border-t flex flex-wrap gap-2 mt-auto" style={{ borderColor: 'var(--border-default)', background: 'var(--bg-sidebar)' }}>
+                {selected.tags.map(tag => <span key={tag} className="text-[10px] px-2.5 py-1 rounded-lg border bg-surface/50 font-medium"
+                  style={{ borderColor: 'var(--border-soft)', color: 'var(--text-secondary)' }}>#{tag}</span>)}
               </div>
             </div>
           ) : (
-            <div className="h-full flex items-center justify-center">
-              <div className="text-center"><div className="text-[48px] mb-4" style={{ color: 'var(--text-tertiary)' }}>◉</div><p className="text-[12px]" style={{ color: 'var(--text-secondary)' }}>Select a memory to view details</p></div>
+            <div className="h-full hidden md:flex items-center justify-center opacity-30">
+              <div className="text-center">
+                <div className="text-[64px] mb-4">🔮</div>
+                <p className="text-[13px] font-medium">Select a memory shard to expand</p>
+              </div>
             </div>
           )}
         </div>
@@ -133,21 +160,27 @@ export default function Memories() {
 function MemoryItem({ memory, selected, onClick }) {
   const cat = categories[memory.category] || categories.work
   return (
-    <div onClick={onClick} className="p-3 rounded-lg cursor-pointer transition-all mb-2"
-      style={{ background: selected ? 'var(--bg-selected)' : 'transparent', borderLeft: selected ? `2px solid ${cat.color}` : '2px solid transparent' }}
-      onMouseEnter={e => { if (!selected) e.currentTarget.style.background = 'var(--bg-hover)' }}
-      onMouseLeave={e => { if (!selected) e.currentTarget.style.background = 'transparent' }}>
-      <div className="flex items-start gap-2">
-        <div className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" style={{ background: cat.color }} />
+    <div onClick={onClick} className="p-3 rounded-xl cursor-pointer transition-all mb-2 group relative border"
+      style={{ 
+        background: selected ? 'var(--bg-selected)' : 'transparent',
+        borderColor: selected ? `${cat.color}40` : 'transparent'
+      }}>
+      <div className="flex items-start gap-3">
+        <div className="w-1.5 h-full absolute left-0 top-0 rounded-l-xl transition-all" style={{ background: selected ? cat.color : 'transparent' }} />
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center text-[14px] flex-shrink-0 border bg-surface/50 group-hover:scale-105 transition-transform" 
+             style={{ color: cat.color, borderColor: `${cat.color}20` }}>
+          {memory.category === 'idea' ? '💡' : memory.category === 'work' ? '💼' : memory.category === 'personal' ? '👤' : '📝'}
+        </div>
         <div className="flex-1 min-w-0">
-          <h4 className="text-[12px] truncate mb-1" style={{ color: 'var(--text-primary)' }}>{memory.title}</h4>
-          <p className="text-[10px] line-clamp-2 leading-relaxed" style={{ color: 'var(--text-tertiary)' }}>{memory.excerpt}</p>
-          <div className="flex items-center gap-2 mt-2">
-            <span className="text-[9px]" style={{ color: 'var(--text-disabled)' }}>{memory.date}</span>
-            {memory.pinned && <span style={{ color: 'var(--color-high)', fontSize: '8px' }}>★</span>}
+          <h4 className="text-[13px] font-bold truncate mb-0.5" style={{ color: 'var(--text-primary)' }}>{memory.title}</h4>
+          <p className="text-[11px] line-clamp-1 opacity-60 leading-relaxed">{memory.excerpt}</p>
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-[9px] font-mono opacity-40">{memory.date}</span>
+            {memory.pinned && <span className="text-accent text-[12px]">★</span>}
           </div>
         </div>
       </div>
     </div>
   )
 }
+

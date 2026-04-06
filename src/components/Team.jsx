@@ -48,13 +48,13 @@ export default function Team() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <h1 className="text-[15px] font-bold tracking-wider" style={{ color: 'var(--text-primary)' }}>TEAM</h1>
-          <div className="flex" style={{ background: 'var(--bg-surface)', borderRadius: 'var(--radius-pill)', padding: '2px' }}>
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+        <div className="flex items-center justify-between md:justify-start gap-4">
+          <h1 className="text-[16px] font-bold tracking-wider" style={{ color: 'var(--text-primary)' }}>TEAM</h1>
+          <div className="flex no-scrollbar overflow-x-auto gap-1" style={{ background: 'var(--bg-surface)', borderRadius: 'var(--radius-pill)', padding: '2px' }}>
             {departments.map(d => (
               <button key={d} onClick={() => setFilter(d)}
-                className="px-2.5 py-1 text-[10px] font-medium rounded-full transition-all"
+                className="px-3 py-1 text-[10px] font-medium rounded-full transition-all whitespace-nowrap"
                 style={{
                   background: filter === d ? accent : 'transparent',
                   color: filter === d ? (isLight ? '#fff' : 'var(--bg-app)') : 'var(--text-secondary)',
@@ -64,97 +64,160 @@ export default function Team() {
             ))}
           </div>
         </div>
-        <button className="px-4 py-2 text-[11px] font-semibold rounded-lg transition-all" style={primaryBtn}>+ INVITE</button>
+        <button className="px-4 py-2 text-[11px] font-bold rounded-lg transition-all shadow-lg bg-accent text-white active:scale-95 whitespace-nowrap">+ INVITE</button>
       </div>
-      <div className="flex flex-1 gap-6 min-h-0 overflow-hidden">
-        <div className="flex-1 grid grid-cols-3 gap-4 content-start overflow-auto">
+
+      <div className="flex flex-1 gap-0 md:gap-6 min-h-0 overflow-hidden relative">
+        {/* Main Grid Section */}
+        <div className={`
+          flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 content-start overflow-y-auto no-scrollbar pb-20 md:pb-0
+          ${selected ? 'hidden md:grid' : 'grid'}
+        `}>
+          {/* Quick Stats Header for Mobile */}
+          <div className="md:hidden col-span-full grid grid-cols-3 gap-2 mb-2">
+            <div className="bg-card p-3 rounded-xl border border-soft text-center">
+              <div className="text-[14px] font-bold">{team.length}</div>
+              <div className="text-[8px] opacity-40 uppercase">Members</div>
+            </div>
+            <div className="bg-card p-3 rounded-xl border border-soft text-center">
+              <div className="text-[14px] font-bold text-done">{onlineCount}</div>
+              <div className="text-[8px] opacity-40 uppercase">Online</div>
+            </div>
+            <div className="bg-card p-3 rounded-xl border border-soft text-center">
+              <div className="text-[14px] font-bold text-accent">{avgEfficiency}%</div>
+              <div className="text-[8px] opacity-40 uppercase">Efficiency</div>
+            </div>
+          </div>
+
           {filteredTeam.map(m => (
             <div key={m.id} onClick={() => setSelected(m)}
-              className="rounded-lg p-4 cursor-pointer transition-all"
-              style={{ background: 'var(--bg-card)', border: selected?.id === m.id ? `1px solid ${accent}` : '1px solid var(--border-card)', boxShadow: 'var(--shadow-card)' }}
-              onMouseEnter={e => { if (selected?.id !== m.id) e.currentTarget.style.borderColor = accent }}
-              onMouseLeave={e => { if (selected?.id !== m.id) e.currentTarget.style.borderColor = 'var(--border-card)' }}>
-              <div className="flex items-start justify-between mb-3">
+              className="group rounded-xl p-4 cursor-pointer transition-all border relative overflow-hidden"
+              style={{ 
+                background: 'var(--bg-card)', 
+                borderColor: selected?.id === m.id ? accent : 'var(--border-card)', 
+                boxShadow: 'var(--shadow-card)' 
+              }}>
+              <div className="absolute top-0 right-0 w-16 h-16 -mr-8 -mt-8 rounded-full opacity-5 transition-transform group-hover:scale-150" style={{ background: m.avatarColor }}></div>
+              <div className="flex items-start justify-between mb-3 relative z-10">
                 <div className="flex items-center gap-3">
                   <div className="relative">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-[12px] font-bold"
-                      style={{ background: m.avatarColor, color: '#fff' }}>{m.avatar}</div>
-                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2"
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center text-[16px] font-bold shadow-inner"
+                      style={{ background: `${m.avatarColor}20`, color: m.avatarColor }}>{m.avatar}</div>
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-4"
                       style={{ background: statusConfig[m.status].color, borderColor: 'var(--bg-card)' }} />
                   </div>
                   <div>
-                    <h3 className="text-[13px] font-bold" style={{ color: 'var(--text-primary)' }}>{m.name}</h3>
-                    <p className="text-[10px]" style={{ color: m.avatarColor }}>{m.role}</p>
+                    <h3 className="text-[14px] font-bold" style={{ color: 'var(--text-primary)' }}>{m.name}</h3>
+                    <p className="text-[10px] font-medium" style={{ color: 'var(--text-secondary)' }}>{m.role}</p>
                   </div>
                 </div>
               </div>
-              <div className="mb-3">
-                <span className="text-[9px] px-2 py-0.5 rounded-full" style={{ background: 'var(--bg-surface)', color: 'var(--text-secondary)' }}>{m.department}</span>
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider" style={{ background: 'var(--bg-surface)', color: 'var(--text-secondary)' }}>{m.department}</span>
+                <span className="text-[9px] font-mono opacity-30">{m.location}</span>
               </div>
-              <div className="grid grid-cols-3 gap-2 mb-3">
-                <div className="text-center p-2 rounded-lg" style={{ background: 'var(--bg-surface)' }}>
-                  <div className="text-[12px] font-bold" style={{ color: 'var(--text-primary)' }}>{m.stats.tasks}</div>
-                  <div className="text-[8px]" style={{ color: 'var(--text-tertiary)' }}>TASKS</div>
-                </div>
-                <div className="text-center p-2 rounded-lg" style={{ background: 'var(--bg-surface)' }}>
-                  <div className="text-[12px] font-bold" style={{ color: 'var(--text-primary)' }}>{m.stats.completed}</div>
-                  <div className="text-[8px]" style={{ color: 'var(--text-tertiary)' }}>DONE</div>
-                </div>
-                <div className="text-center p-2 rounded-lg" style={{ background: 'var(--bg-surface)' }}>
-                  <div className="text-[12px] font-bold" style={{ color: 'var(--color-done)' }}>{m.stats.efficiency}%</div>
-                  <div className="text-[8px]" style={{ color: 'var(--text-tertiary)' }}>EFF</div>
-                </div>
+              <div className="grid grid-cols-3 gap-2 py-3 border-t border-soft" style={{ borderColor: 'var(--border-default)' }}>
+                 <div className="text-center">
+                   <div className="text-[12px] font-bold" style={{ color: 'var(--text-primary)' }}>{m.stats.tasks}</div>
+                   <div className="text-[7px] uppercase font-bold opacity-30">Tasks</div>
+                 </div>
+                 <div className="text-center">
+                   <div className="text-[12px] font-bold" style={{ color: 'var(--text-primary)' }}>{m.stats.completed}</div>
+                   <div className="text-[7px] uppercase font-bold opacity-30">Done</div>
+                 </div>
+                 <div className="text-center">
+                   <div className="text-[12px] font-bold" style={{ color: 'var(--color-done)' }}>{m.stats.efficiency}%</div>
+                   <div className="text-[7px] uppercase font-bold opacity-30">Eff</div>
+                 </div>
               </div>
-              <div className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>{m.location} • since {m.joined}</div>
             </div>
           ))}
         </div>
-        {/* Right Panel */}
-        <div className="w-72 flex-shrink-0 rounded-lg overflow-hidden flex flex-col" style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-card)', border: '1px solid var(--border-card)' }}>
-          <div className="p-4 border-b" style={{ borderColor: 'var(--border-default)' }}>
-            <h3 className="text-[11px] font-bold tracking-wider" style={{ color: 'var(--text-primary)' }}>TEAM STATS</h3>
+
+        {/* Detail Overlay / Panel */}
+        <div className={`
+          flex-shrink-0 md:w-80 rounded-xl overflow-hidden flex flex-col transition-all duration-300
+          fixed inset-0 z-[60] md:relative md:inset-auto md:z-auto md:flex
+          ${selected ? 'translate-x-0 opacity-100 flex' : 'translate-x-full opacity-0 md:translate-x-0 md:opacity-100 hidden'}
+        `} style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-card)', border: '1px solid var(--border-card)' }}>
+          <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: 'var(--border-default)', background: 'var(--bg-surface)/30' }}>
+            <h3 className="text-[11px] font-bold tracking-wider" style={{ color: 'var(--text-primary)' }}>
+              {selected ? 'MEMBER DETAILS' : 'TEAM STATISTICS'}
+            </h3>
+            <button onClick={() => setSelected(null)} className="md:hidden p-2 text-secondary hover:text-primary">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
           </div>
-          <div className="p-4 border-b" style={{ borderColor: 'var(--border-default)' }}>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="text-center"><div className="text-[18px] font-bold" style={{ color: 'var(--text-primary)' }}>{team.length}</div><div className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>MEMBERS</div></div>
-              <div className="text-center"><div className="text-[18px] font-bold" style={{ color: 'var(--color-done)' }}>{onlineCount}</div><div className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>ONLINE</div></div>
-              <div className="text-center"><div className="text-[18px] font-bold" style={{ color: accent }}>{avgEfficiency}%</div><div className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>AVG EFF</div></div>
+          
+          {!selected && (
+            <div className="p-4 border-b hidden md:block" style={{ borderColor: 'var(--border-default)' }}>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="text-center"><div className="text-[20px] font-bold" style={{ color: 'var(--text-primary)' }}>{team.length}</div><div className="text-[8px] font-bold opacity-40 uppercase">Total</div></div>
+                <div className="text-center"><div className="text-[20px] font-bold text-done">{onlineCount}</div><div className="text-[8px] font-bold opacity-40 uppercase">Online</div></div>
+                <div className="text-center"><div className="text-[20px] font-bold text-accent">{avgEfficiency}%</div><div className="text-[8px] font-bold opacity-40 uppercase">Efficiency</div></div>
+              </div>
             </div>
-          </div>
+          )}
+
           {selected ? (
-            <div className="flex-1 overflow-y-auto">
-              <div className="p-4">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center text-[14px] font-bold" style={{ background: selected.avatarColor, color: '#fff' }}>{selected.avatar}</div>
-                  <div><h3 className="text-[14px] font-bold" style={{ color: 'var(--text-primary)' }}>{selected.name}</h3><p className="text-[11px]" style={{ color: selected.avatarColor }}>{selected.role}</p></div>
+            <div className="flex-1 overflow-y-auto no-scrollbar">
+              <div className="p-6">
+                <div className="flex flex-col items-center text-center mb-6">
+                  <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-[32px] font-bold mb-3 shadow-xl" style={{ background: `${selected.avatarColor}20`, color: selected.avatarColor, border: `1px solid ${selected.avatarColor}40` }}>{selected.avatar}</div>
+                  <h3 className="text-[18px] font-bold" style={{ color: 'var(--text-primary)' }}>{selected.name}</h3>
+                  <p className="text-[12px] font-medium" style={{ color: selected.avatarColor }}>{selected.role}</p>
                 </div>
-                <div className="space-y-3 mb-4">
-                  {Object.entries({ Status: statusConfig[selected.status].label, Department: selected.department, Location: selected.location, Email: selected.email, Joined: selected.joined }).map(([k,v]) => (
-                    <div key={k} className="flex items-center justify-between"><span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>{k}</span><span className="text-[10px]" style={{ color: 'var(--text-primary)' }}>{v}</span></div>
+                
+                <div className="bg-surface/30 rounded-2xl p-4 border border-soft space-y-4 mb-6">
+                  {Object.entries({ Status: statusConfig[selected.status].label, Department: selected.department, Location: selected.location, Joined: selected.joined }).map(([k,v]) => (
+                    <div key={k} className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase opacity-40">{k}</span>
+                      <span className="text-[11px] font-bold" style={{ color: k === 'Status' ? statusConfig[selected.status].color : 'var(--text-primary)' }}>{v}</span>
+                    </div>
                   ))}
                 </div>
-                <div className="mb-4"><span className="text-[10px] block mb-2" style={{ color: 'var(--text-secondary)' }}>Current Project</span><div className="px-3 py-2 rounded-lg text-[11px]" style={{ background: 'var(--bg-surface)', color: accent }}>{selected.currentProject}</div></div>
-                <div><span className="text-[10px] block mb-2" style={{ color: 'var(--text-secondary)' }}>Skills</span><div className="flex flex-wrap gap-1">{(selected.skills || []).map(s => <span key={s} className="text-[9px] px-2 py-0.5 rounded-full" style={{ background: 'var(--bg-surface)', color: 'var(--text-secondary)' }}>{s}</span>)}</div></div>
+
+                <div className="mb-6">
+                  <span className="text-[10px] font-bold uppercase opacity-40 block mb-2 tracking-widest text-accent">Active Protocol</span>
+                  <div className="px-4 py-3 rounded-xl border text-[11px] font-medium leading-relaxed" style={{ background: 'var(--bg-surface)', borderColor: 'var(--border-default)', color: 'var(--text-secondary)' }}>
+                    {selected.currentProject}
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <span className="text-[10px] font-bold uppercase opacity-40 block mb-2 tracking-widest">Capabilities</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(selected.skills || []).map(s => <span key={s} className="text-[10px] px-3 py-1 rounded-lg border bg-surface/50 font-bold" style={{ borderColor: 'var(--border-soft)', color: 'var(--text-secondary)' }}>{s}</span>)}
+                  </div>
+                </div>
                 
                 {selected.department === 'AI' && selected.rawAgent?.canvas ? (
-                  <div className="mt-6 flex flex-col min-h-[300px]">
-                    <div className="flex items-center gap-2 mb-2">
-                       <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#10b981' }}></span>
-                       <span className="text-[10px] font-bold tracking-wider" style={{ color: accent }}>LIVE CANVAS (REALTIME)</span>
+                  <div className="mt-8">
+                    <div className="flex items-center justify-between mb-3">
+                       <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-accent">Live Stream</span>
+                       <div className="flex items-center gap-1.5">
+                         <span className="w-1.5 h-1.5 rounded-full bg-urgent animate-ping"></span>
+                         <span className="text-[9px] font-bold uppercase opacity-40">Syncing</span>
+                       </div>
                     </div>
-                    <pre className="text-[9px] p-3 rounded-lg overflow-auto flex-1 font-mono whitespace-pre-wrap" style={{ 
-                        background: 'var(--bg-surface)', 
-                        color: 'var(--text-primary)', 
-                        border: '1px solid var(--border-default)' 
-                      }}>
-                      {typeof selected.rawAgent.canvas === 'string' ? selected.rawAgent.canvas : JSON.stringify(selected.rawAgent.canvas, null, 2)}
-                    </pre>
+                    <div className="relative group">
+                      <div className="absolute inset-0 bg-accent/5 blur-xl group-hover:bg-accent/10 transition-colors"></div>
+                      <pre className="relative text-[10px] p-4 rounded-xl overflow-auto max-h-[400px] font-mono leading-relaxed border bg-black/40 backdrop-blur-md" 
+                        style={{ color: 'var(--accent)', borderColor: 'var(--accent)30' }}>
+                        {typeof selected.rawAgent.canvas === 'string' ? selected.rawAgent.canvas : JSON.stringify(selected.rawAgent.canvas, null, 2)}
+                      </pre>
+                    </div>
                   </div>
                 ) : null}
               </div>
             </div>
           ) : (
-            <div className="flex-1 flex items-center justify-center p-4"><p className="text-[11px] text-center" style={{ color: 'var(--text-secondary)' }}>Select a team member to view details</p></div>
+            <div className="flex-1 hidden md:flex items-center justify-center p-8 opacity-30 text-center">
+              <div>
+                 <div className="text-6xl mb-4">👥</div>
+                 <p className="text-[12px] font-medium leading-relaxed">Select a crew member to<br/>view tactical statistics</p>
+              </div>
+            </div>
           )}
         </div>
       </div>

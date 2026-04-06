@@ -51,7 +51,7 @@ export default function TaskBoard() {
   const [depModal, setDepModal] = useState(null)
   const [selectedTask, setSelectedTask] = useState(null)
 
-  const newTaskRef = useRef({ title: '', priority: 'medium', assignee: 'rahul' })
+  const newTaskRef = useRef({ title: '', priority: 'medium', assignee: 'rahul', dueDate: null })
   const [subtaskInput, setSubtaskInput] = useState('')
   const [commentInput, setCommentInput] = useState('')
 
@@ -77,13 +77,13 @@ export default function TaskBoard() {
     const task = {
       id: store.nextId(), title, tags: [],
       priority: newTaskRef.current.priority, assignee: newTaskRef.current.assignee,
-      status: 'backlog', estimate: '1d', dueDate: null,
+      status: 'backlog', estimate: '1d', dueDate: newTaskRef.current.dueDate || null,
       comments: [], subtasks: [], dependencies: [], dependsOn: [],
     }
     store.patchState({ tasks: [...allTasks, task] })
     store.addActivity({ icon: '▣', action: `Created: ${title}` })
     setShowModal(false)
-    newTaskRef.current = { title: '', priority: 'medium', assignee: 'rahul' }
+    newTaskRef.current = { title: '', priority: 'medium', assignee: 'rahul', dueDate: null }
   }
 
   const toggleSubtask = (taskId, sid) => {
@@ -128,13 +128,13 @@ export default function TaskBoard() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8" style={{ color: 'var(--text-primary)' }}>
-        <div className="flex items-center gap-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4" style={{ color: 'var(--text-primary)' }}>
+        <div className="flex items-center gap-4">
           <div>
             <h1 className="text-[18px] font-bold tracking-wider">TASK BOARD</h1>
-            <p className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>{allTasks.length} tasks across 4 columns</p>
+            <p className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>{allTasks.length} tasks synced</p>
           </div>
-          <div className="flex" style={{ background: 'var(--bg-surface)', borderRadius: 'var(--radius-pill)', padding: '2px' }}>
+          <div className="hidden md:flex" style={{ background: 'var(--bg-surface)', borderRadius: 'var(--radius-pill)', padding: '2px' }}>
             {['all', 'urgent'].map(fId => (
               <button key={fId} onClick={() => setFilter(fId)}
                 className="px-3 py-1.5 text-[10px] font-medium rounded-full transition-all"
@@ -147,23 +147,46 @@ export default function TaskBoard() {
             ))}
           </div>
         </div>
-        <div className="flex gap-2 items-center">
-          {overdueCount > 0 && <span className="text-[10px] px-2 py-1 rounded-full" style={priorityPill.urgent}>🔥 {overdueCount} overdue</span>}
-          {dueTodayCount > 0 && <span className="text-[10px] px-2 py-1 rounded-full" style={priorityPill.high}>📅 {dueTodayCount} today</span>}
-          {blockedCount > 0 && <span className="text-[10px] px-2 py-1 rounded-full" style={statusColors.review}>🔒 {blockedCount} blocked</span>}
-          <button onClick={() => store.exportState()}
-            className="px-4 py-2 text-[10px] font-medium rounded-lg transition-all"
-            style={{ background: 'var(--bg-surface)', color: 'var(--color-done)', border: '1px solid var(--border-default)' }}>📥 EXPORT</button>
+
+        {/* Mobile Filter & Actions */}
+        <div className="flex flex-wrap items-center gap-2">
+          {overdueCount > 0 && <span className="text-[9px] px-2 py-1 rounded-full" style={priorityPill.urgent}>🔥 {overdueCount}</span>}
+          {dueTodayCount > 0 && <span className="text-[9px] px-2 py-1 rounded-full" style={priorityPill.high}>📅 {dueTodayCount}</span>}
+          
+          <div className="flex-1"></div>
+
           <button onClick={() => setShowModal(true)}
-            className="px-4 py-2 text-[10px] font-medium rounded-lg transition-all"
+            className="px-4 py-2 text-[10px] font-bold rounded-lg transition-all shadow-lg active:scale-95"
             style={primaryBtnStyle}>+ NEW TASK</button>
         </div>
       </div>
 
+      {/* Mobile Column Tabs */}
+      <div className="md:hidden flex gap-2 mb-4 overflow-x-auto no-scrollbar pb-2">
+        {columns.map(c => (
+          <button
+            key={c.id}
+            onClick={() => {
+              const el = document.getElementById(`col-${c.id}`);
+              el?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+            }}
+            className="flex-shrink-0 px-4 py-2 rounded-full text-[10px] font-bold border transition-all"
+            style={{ 
+              background: 'var(--bg-surface)', 
+              borderColor: 'var(--border-default)',
+              color: 'var(--text-secondary)'
+            }}
+          >
+            {c.label} ({colData[c.id].length})
+          </button>
+        ))}
+      </div>
+
+
       {/* Kanban Columns */}
-      <div className="flex gap-4 h-full pb-6">
+      <div className="flex gap-4 h-full pb-6 overflow-x-auto snap-x snap-mandatory no-scrollbar md:snap-none">
         {Object.entries(colData).map(([colId, tasks]) => (
-          <div key={colId} className="flex-1 min-w-0 flex flex-col"
+          <div key={colId} id={`col-${colId}`} className="flex-1 min-w-[85vw] md:min-w-0 flex flex-col snap-center"
             onDragOver={e => e.preventDefault()}
             onDrop={e => { e.preventDefault(); if (dragId) { updateTask(dragId, { status: colId }); setDragId(null) } }}>
             <div className="flex items-center justify-between mb-4 px-3 py-2"
@@ -277,10 +300,11 @@ export default function TaskBoard() {
 
       {/* Task Detail Panel */}
       {selectedTask && (
-        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setSelectedTask(null)}>
-          <div className="rounded-xl p-6 w-[500px] max-h-[80vh] overflow-y-auto"
+        <div className="fixed inset-0 flex items-end md:items-center justify-center z-[60]" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => setSelectedTask(null)}>
+          <div className="rounded-t-2xl md:rounded-xl p-6 w-full md:w-[500px] max-h-[90vh] overflow-y-auto transition-transform"
             style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-card)', border: `1px solid var(--border-default)` }}
             onClick={e => e.stopPropagation()}>
+
             <div className="flex justify-between items-start mb-1">
               <h3 className="text-[14px] font-bold" style={{ color: 'var(--text-primary)' }}>{selectedTask.title}</h3>
               <button onClick={() => setSelectedTask(null)} className="text-[16px] leading-none" style={{ color: 'var(--text-tertiary)' }}>✕</button>
@@ -288,11 +312,18 @@ export default function TaskBoard() {
             <div className="flex gap-3 mb-4 text-[10px]">
               <span className="px-2 py-0.5 rounded-full" style={priorityPill[selectedTask.priority] || priorityPill.medium}>{selectedTask.priority}</span>
               <span style={{ color: 'var(--text-secondary)' }}>{selectedTask.assignee}</span>
-              {getDueInfo(selectedTask) && (
-                <span style={{ color: getDueInfo(selectedTask).status === 'overdue' ? 'var(--color-urgent)' : 'var(--color-high)' }}>
-                  {getDueInfo(selectedTask).label}
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>Due:</span>
+                <input type="date" value={selectedTask.dueDate || ''}
+                  onChange={e => updateTask(selectedTask.id, { dueDate: e.target.value })}
+                  className="text-[10px] px-2 py-0.5 rounded-lg outline-none"
+                  style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', border: '1px solid var(--border-default)' }} />
+                {getDueInfo(selectedTask) && (
+                  <span style={{ color: getDueInfo(selectedTask).status === 'overdue' ? 'var(--color-urgent)' : 'var(--color-high)' }}>
+                    ({getDueInfo(selectedTask).label})
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Subtasks */}
@@ -399,8 +430,9 @@ export default function TaskBoard() {
 
       {/* New Task Modal */}
       {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ background: 'rgba(0,0,0,0.5)' }} onClick={() => setShowModal(false)}>
-          <div className="rounded-xl p-6 w-96" style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-card)', border: '1px solid var(--border-default)' }} onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 flex items-end md:items-center justify-center z-[60]" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => setShowModal(false)}>
+          <div className="rounded-t-2xl md:rounded-xl p-6 w-full md:w-96 transition-transform" style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-card)', border: '1px solid var(--border-default)' }} onClick={e => e.stopPropagation()}>
+
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-[14px] font-bold" style={{ color: 'var(--text-primary)' }}>CREATE TASK</h3>
               <button onClick={() => setShowModal(false)} className="text-[16px] leading-none" style={{ color: 'var(--text-tertiary)' }}>✕</button>
@@ -422,6 +454,10 @@ export default function TaskBoard() {
               style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)', color: 'var(--text-primary)', outline: 'none' }}>
               {assigneeList.map(a => <option key={a.id} value={a.id} style={{ background: 'var(--bg-card)' }}>{a.name}</option>)}
             </select>
+            <input type="date" placeholder="Due date"
+              onChange={e => newTaskRef.current.dueDate = e.target.value}
+              className="w-full px-3 py-2 text-[11px] rounded-lg mb-3"
+              style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)', color: 'var(--text-primary)', outline: 'none' }} />
             <div className="flex gap-2 mt-4">
               <button onClick={() => setShowModal(false)}
                 className="flex-1 py-2 text-[10px] rounded-lg transition-all"

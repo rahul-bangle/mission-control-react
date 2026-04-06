@@ -17,11 +17,11 @@
   --bg-selected: #1a1a1a40;
   --bg-sidebar-selected: #252525;
 
-  --border-default: #1a1a1a;
-  --border-card: #2a2a2a;
-  --border-soft: #1a1a1a;
-  --border-sidebar: #1a1a1a;
-  --border-input: #333;
+  --border-default: #333333;
+  --border-card: #444444;
+  --border-soft: #2a2a2a;
+  --border-sidebar: #2a2a2a;
+  --border-input: #555555;
 
   --text-primary: #ffffff;
   --text-secondary: #888888;
@@ -130,7 +130,7 @@ html.light {
 }
 
 /* ── Global resets ─────────────────────────────────────────────────── */
-* { font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+* { font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
 /* ── Keyframes (theme-aware) ───────────────────────────────────────── */
 @keyframes pulse-red {
@@ -148,3 +148,39 @@ html.light {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--text-tertiary); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+/* ── Mobile Responsiveness Utilities ──────────────────────────────── */
+
+@layer utilities {
+  .mobile-only { display: block; }
+  .desktop-only { display: none; }
+
+  @media (min-width: 768px) {
+    .mobile-only { display: none; }
+    .desktop-only { display: block; }
+  }
+
+  /* Glassmorphism mobile optimization (reduce blur for perf if needed) */
+  .mobile-glass {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
+
+/* ── Global Responsive Refinements ────────────────────────────────── */
+@media (max-width: 767px) {
+  h1 { font-size: 1.25rem !important; }
+  h2 { font-size: 1.1rem !important; }
+  h3 { font-size: 1rem !important; }
+  
+  /* Increase touch targets for buttons on mobile */
+  button, select, input {
+    min-height: 32px;
+  }
+
+  /* Prevent body overflow when sidebar is open */
+  body.sidebar-open {
+    overflow: hidden;
+  }
+}
+

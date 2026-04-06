@@ -55,12 +55,12 @@
 ## Phase 5B — Calendar (15 items) — 🟡 PARTIAL
 > Basic month view with tasks synced ✅. Week view, agenda, recurring, AI features = future.
 - [x] `5B.1` Basic task → calendar sync
-- [ ] `5B.2` Color-code events by priority
-- [ ] `5B.3` Click event → open task details
-- [ ] `5B.4` Drag task → Calendar = set due date
-- [ ] `5B.5` Week view (hourly grid)
-- [ ] `5B.6` Month / Week / Agenda toggle
-- [ ] `5B.7` Agenda view
+- [x] `5B.2` Color-code events by priority
+- [x] `5B.3` Click event → open task details
+- [x] `5B.4` Drag task → Calendar = set due date
+- [x] `5B.5` Week view (hourly grid)
+- [x] `5B.6` Month / Week / Agenda toggle
+- [x] `5B.7` Agenda view
 - [ ] `5B.8` Recurring events
 - [ ] `5B.9` Recurring rule engine
 - [ ] `5B.10` Quick-add (double-click date)

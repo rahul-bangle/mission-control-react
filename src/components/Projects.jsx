@@ -36,11 +36,11 @@ export default function Projects() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <h1 className="text-[15px] font-bold tracking-wider" style={{ color: 'var(--text-primary)' }}>PROJECTS</h1>
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+        <div className="flex items-center justify-between md:justify-start gap-4">
+          <h1 className="text-[16px] font-bold tracking-wider" style={{ color: 'var(--text-primary)' }}>PROJECTS</h1>
           <div className="flex" style={{ background: 'var(--bg-surface)', borderRadius: 'var(--radius-pill)', padding: '2px' }}>
-            {['all', 'active', 'review', 'paused', 'completed'].map(f => (
+            {['all', 'active', 'completed'].map(f => (
               <button key={f} onClick={() => setFilter(f)}
                 className="px-2.5 py-1 text-[10px] font-medium rounded-full transition-all"
                 style={{
@@ -52,19 +52,20 @@ export default function Projects() {
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 justify-between md:justify-end">
           <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-            className="px-3 py-1.5 text-[10px] rounded-lg cursor-pointer"
+            className="px-3 py-1.5 text-[10px] rounded-lg cursor-pointer flex-1 md:flex-initial"
             style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)', color: 'var(--text-secondary)' }}>
-            <option value="progress" style={{ background: 'var(--bg-card)' }}>Sort: Progress</option>
-            <option value="name" style={{ background: 'var(--bg-card)' }}>Sort: Name</option>
-            <option value="tasks" style={{ background: 'var(--bg-card)' }}>Sort: Tasks</option>
+            <option value="progress">Sort: Progress</option>
+            <option value="name">Sort: Name</option>
           </select>
-          <button className="px-4 py-2 text-[11px] font-semibold rounded-lg transition-all"
+          <button className="px-4 py-2 text-[11px] font-bold rounded-lg transition-all shadow-lg active:scale-95"
             style={primaryBtn}>+ NEW PROJECT</button>
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-4 flex-1 min-h-0 overflow-auto">
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 flex-1 min-h-0 overflow-auto no-scrollbar pb-10">
+
         {filteredProjects.map(p => (
           <div key={p.id} className="rounded-lg overflow-hidden flex flex-col transition-all cursor-pointer"
             style={{ background: 'var(--bg-card)', border: '1px solid var(--border-card)', boxShadow: 'var(--shadow-card)' }}

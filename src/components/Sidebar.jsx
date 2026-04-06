@@ -27,11 +27,12 @@ export default function Sidebar({ active, setActive, isOpen, toggle }) {
 
   return (
     <aside
-      className={`fixed top-0 left-0 h-full bg-[#111111] p-4 flex flex-col gap-1 z-30 transition-all duration-300 md:relative md:translate-x-0 ${
+      className={`fixed top-0 left-0 h-full bg-[#111111] p-5 flex flex-col gap-1 z-50 transition-all duration-300 transform md:relative md:translate-x-0 md:transform-none ${
         isOpen ? 'translate-x-0' : '-translate-x-full'
-      } w-60 flex-shrink-0`}
+      } w-64 flex-shrink-0`}
+      style={{ borderRight: '1px solid var(--border-default)' }}
     >
-      <div className="flex justify-between items-center text-[#19c3ff] font-bold text-sm tracking-wider mb-5 px-3">
+      <div className="flex justify-between items-center text-[#19c3ff] font-bold text-sm tracking-wider mb-8 px-2">
         <span className="flex items-center gap-2">🦞 MISSION CONTROL</span>
         <button
           onClick={toggle}
@@ -42,38 +43,33 @@ export default function Sidebar({ active, setActive, isOpen, toggle }) {
         </button>
       </div>
 
-      {!isOpen && (
-        <button
-          onClick={toggle}
-          className="absolute top-5 -right-8 p-2 bg-[#111111] rounded-r-lg md:hidden"
-          aria-label="Toggle menu"
-        >
-          <MenuIcon />
-        </button>
-      )}
+      <div className="flex-1 space-y-1 overflow-y-auto">
+        {items.map(item => (
+          <button
+            key={item.id}
+            onClick={() => setActive(item.id)}
+            className={`w-full text-left px-4 py-3 rounded-xl text-[13px] flex items-center gap-3 transition-all cursor-pointer border ${
+              active === item.id 
+                ? 'bg-[#252525] text-[#19c3ff] border-[#19c3ff30]' 
+                : 'text-gray-500 border-transparent hover:bg-[#1a1a1a] hover:text-gray-300'
+            }`}
+          >
+            <span className="text-lg opacity-80">{item.icon}</span>
+            <span className="font-medium">{item.label}</span>
+          </button>
+        ))}
+      </div>
 
-      {items.map(item => (
-        <button
-          key={item.id}
-          onClick={() => {
-            setActive(item.id)
-            toggle()
-          }}
-          className={`w-full text-left px-4 py-3 rounded-lg text-sm flex items-center gap-3 transition-all cursor-pointer ${
-            active === item.id ? 'bg-[#252525] text-[#19c3ff]' : 'text-gray-500 hover:text-gray-300'
-          }`}
-        >
-          <span>{item.icon}</span>
-          <span>{item.label}</span>
-        </button>
-      ))}
-
-      {isOpen && (
-        <div
-          onClick={toggle}
-          className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
-        />
-      )}
+      <div className="mt-8 pt-4 border-t border-[#252525]">
+        <div className="px-4 py-3 rounded-xl bg-[#1a1a1a] border border-[#333]">
+          <p className="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Status</p>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+            <span className="text-[11px] text-gray-300 font-mono">System Online</span>
+          </div>
+        </div>
+      </div>
     </aside>
   )
 }
+
