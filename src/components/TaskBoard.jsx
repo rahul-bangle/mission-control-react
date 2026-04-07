@@ -54,6 +54,7 @@ export default function TaskBoard() {
   const newTaskRef = useRef({ title: '', priority: 'medium', assignee: 'rahul', dueDate: null })
   const [subtaskInput, setSubtaskInput] = useState('')
   const [commentInput, setCommentInput] = useState('')
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const assigneeList = team.map(m => ({
     id: m.name === 'Aria' ? 'aria' : m.name.toLowerCase().split(' ')[0],
@@ -376,8 +377,47 @@ export default function TaskBoard() {
             </div>
 
             <button onClick={() => setSelectedTask(null)}
-              className="w-full py-2 text-[10px] rounded-lg transition-all"
+              className="w-full py-2 text-[10px] rounded-lg transition-all mb-2"
               style={{ background: 'var(--bg-surface)', color: 'var(--text-secondary)' }}>CLOSE</button>
+
+            <button onClick={() => setShowDeleteConfirm(true)}
+              className="w-full py-2 text-[10px] font-bold rounded-lg transition-all border border-transparent hover:border-urgent/50"
+              style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--color-urgent)' }}>
+              DELETE TASK
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Overlay */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 flex items-center justify-center z-[100] p-4" style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}>
+          <div className="w-full max-w-xs p-6 rounded-2xl border text-center animate-in zoom-in-95 duration-200"
+            style={{ background: 'var(--bg-card)', borderColor: 'var(--color-urgent)40', boxShadow: '0 0 40px rgba(239, 68, 68, 0.2)' }}>
+            <div className="w-12 h-12 rounded-full bg-urgent/20 flex items-center justify-center mx-auto mb-4">
+              <span className="text-2xl">⚠️</span>
+            </div>
+            <h3 className="text-[14px] font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Permanent Deletion?</h3>
+            <p className="text-[11px] mb-6 px-2" style={{ color: 'var(--text-tertiary)' }}>
+              This will erase <strong>{selectedTask?.title}</strong> from the database. This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 py-2.5 text-[11px] font-bold rounded-xl transition-all"
+                style={{ background: 'var(--bg-surface)', color: 'var(--text-secondary)' }}>
+                CANCEL
+              </button>
+              <button 
+                onClick={() => {
+                  store.deleteTask(selectedTask.id)
+                  setSelectedTask(null)
+                  setShowDeleteConfirm(false)
+                }}
+                className="flex-1 py-2.5 text-[11px] font-bold rounded-xl transition-all shadow-lg shadow-urgent/20"
+                style={{ background: 'var(--color-urgent)', color: '#fff' }}>
+                DELETE
+              </button>
+            </div>
           </div>
         </div>
       )}

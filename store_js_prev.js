@@ -40,28 +40,10 @@ async function loadFromSupabase() {
       supabase.from('docs').select('*'),
       supabase.from('activities').select('*').limit(50).order('timestamp', { ascending: false }),
     ])
-    
-    // Safety check for nextTaskId based on max existing numeric ID if any
-    let maxId = 0
-    if (Array.isArray(tasks)) {
-      tasks.forEach(t => {
-        const numId = parseInt((t.id || '').replace('t', ''), 10)
-        if (!isNaN(numId) && numId > maxId) maxId = numId
-      })
-    }
-
     return {
       ...seedState,
       tasks: Array.isArray(tasks) ? tasks.map(t => {
         const uiTask = { ...t }
-        // Ensure arrays are present even if null in DB
-        uiTask.tags = uiTask.tags || []
-        uiTask.comments = uiTask.comments || []
-        uiTask.subtasks = uiTask.subtasks || []
-        uiTask.dependencies = uiTask.dependencies || []
-        uiTask.dependsOn = uiTask.dependsOn || []
-        
-        // Map due_date (DB) to dueDate (UI)
         if (uiTask.due_date !== undefined) {
           uiTask.dueDate = uiTask.due_date
           delete uiTask.due_date
@@ -74,7 +56,7 @@ async function loadFromSupabase() {
       memories: Array.isArray(memories) ? memories : [],
       docs: Array.isArray(docs) ? docs : [],
       activity: Array.isArray(activity) ? activity : [],
-      nextTaskId: maxId + 1,
+      nextTaskId: 1,
     }
   } catch (e) {
     console.warn('[Supabase] Load failed, using localStorage:', e)
@@ -84,16 +66,14 @@ async function loadFromSupabase() {
 
 async function syncToSupabase(changes) {
   const { tasks } = changes
-  if (tasks && Array.isArray(tasks)) {
+  if (tasks) {
     for (const task of tasks) {
       const dbTask = { ...task }
-      // Map UI properties to DB schema
       if (dbTask.dueDate !== undefined) {
         dbTask.due_date = dbTask.dueDate
         delete dbTask.dueDate
       }
-      // Ensure database-unfriendly properties are handled
-      delete dbTask.dependsOn // Handled by separate logic if needed, or if it's a join table
+      delete dbTask.dependsOn
       
       const { error } = await supabase.from('tasks').upsert(dbTask)
       if (error) console.warn('[Supabase] Upsert error:', error)
@@ -102,15 +82,18 @@ async function syncToSupabase(changes) {
 }
 
 async function initializeStore() {
+  // Try loading from Supabase first
   const supabaseData = await loadFromSupabase()
   if (supabaseData) {
     state = supabaseData
     console.log('[store] Loaded from Supabase')
   } else {
+    // Fallback to localStorage
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
       if (raw) {
-        state = { ...seedState, ...JSON.parse(raw) }
+        const parsed = JSON.parse(raw)
+        state = { ...seedState, ...parsed }
         console.log('[store] Loaded from localStorage')
       }
     } catch (e) {
@@ -119,6 +102,7 @@ async function initializeStore() {
   }
   notifyListeners()
 }
+// ─────────────────────────────────────────────────────────────
 
 function notifyListeners() {
   const snapshot = JSON.parse(JSON.stringify(state))
@@ -128,20 +112,22 @@ function notifyListeners() {
 export const store = {
   getState: () => JSON.parse(JSON.stringify(state)),
   patchState: async (partial) => {
+    const old = JSON.parse(JSON.stringify(state))
     state = { ...state, ...partial }
     notifyListeners()
-    // Sync to Supabase in background
-    syncToSupabase(partial).catch(e => console.warn('[store] Sync error:', e))
-    saveState()
+    // Background syncing
+    const changes = partial
+    try {
+      await syncToSupabase(changes)
+      // Save to localStorage as backup
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)) } catch (e) { console.warn('[store] Save failed:', e) }
+    } catch (e) {
+      console.warn('[store] Supabase sync error:', e)
+    }
   },
   subscribe: (fn) => { listeners.add(fn); return () => listeners.delete(fn) },
-  on: (eventName, fn) => {
-    if (!eventListeners[eventName]) eventListeners[eventName] = []
-    eventListeners[eventName].push(fn)
-    return () => { eventListeners[eventName] = (eventListeners[eventName] || []).filter(f => f !== fn) }
-  },
-  emit: (eventName, ...args) => { (eventListeners[eventName] || []).forEach(fn => fn(...args)) },
 
+  // ─── Activity Feed ─────────────────────────────────────
   addActivity: (entry) => {
     const act = {
       id: 'act-' + Date.now(),
@@ -150,18 +136,24 @@ export const store = {
       action: entry.action,
       time: 'just now',
       unread: true,
-      timestamp: new Date().toISOString(),
+      timestamp: Date.now(),
       ...entry.extra
     }
     state.activity = [act, ...state.activity].slice(0, 50)
     notifyListeners()
     store.emit('activity:added', act)
-    saveState()
-    // Sync activity to DB
-    supabase.from('activities').insert([act]).then(({ error }) => {
-      if (error) console.warn('[Supabase] Activity insert error:', error)
+    // Sync activity to Supabase
+    supabase.from('activities').upsert([act]).then(({ error }) => {
+      if (error) console.warn('[Supabase] Activity upsert error:', error)
     })
   },
+  emit: (eventName, ...args) => { (eventListeners[eventName] || []).forEach(fn => fn(...args)) },
+  on: (eventName, fn) => {
+    if (!eventListeners[eventName]) eventListeners[eventName] = []
+    eventListeners[eventName].push(fn)
+    return () => { eventListeners[eventName] = (eventListeners[eventName] || []).filter(f => f !== fn) }
+  },
+  // ─────────────────────────────────────────────────────────────
 
   exportState: () => {
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' })
@@ -178,12 +170,14 @@ export const store = {
       const imported = JSON.parse(jsonStr)
       state = { ...seedState, ...imported }
       notifyListeners()
-      saveState()
+      supabase.from('tasks').upsert(state.tasks)
+      supabase.from('projects').upsert(state.projects)
+      supabase.from('events').upsert(state.events)
+      supabase.from('team').upsert(state.team)
+      supabase.from('memories').upsert(state.memories)
+      supabase.from('docs').upsert(state.docs)
       return true
-    } catch (e) {
-      console.error('[store] Import failed:', e)
-      return false
-    }
+    } catch (e) { console.error('[store] Import failed:', e); return false }
   },
 
   factoryReset: () => {
@@ -192,18 +186,32 @@ export const store = {
     localStorage.removeItem(STORAGE_KEY)
   },
 
+  // ─── Realtime subscription (listen for changes) ─────────────
+  _subscription: null,
+  connectRealtime() {
+    if (this._subscription) return
+    this._subscription = supabase
+      .channel('global-updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, (payload) => {
+        console.log('[Realtime] tasks change:', payload)
+        // Refresh tasks list from server or merge
+        this.loadFromSupabase().then(newState => {
+          if (newState) {
+            state = newState
+            notifyListeners()
+          }
+        })
+      })
+      .subscribe()
+  },
+  // ─────────────────────────────────────────────────────────────
+
   nextId: () => `t${state.nextTaskId++}`,
 
   // Dependency helpers
   checkCircular: (taskId, depId) => hasCircularDependency(state.tasks, taskId, depId),
-  isBlocked: (taskId) => { 
-    const task = state.tasks.find(t => t.id === taskId)
-    return task ? isTaskBlocked(task, state.tasks) : false 
-  },
-  getBlockerCount: (taskId) => { 
-    const task = state.tasks.find(t => t.id === taskId)
-    return task ? getBlockerCount(task, state.tasks) : 0 
-  },
+  isBlocked: (taskId) => { const task = state.tasks.find(t => t.id === taskId); return task ? isTaskBlocked(task, state.tasks) : false },
+  getBlockerCount: (taskId) => { const task = state.tasks.find(t => t.id === taskId); return task ? getBlockerCount(task, state.tasks) : 0 },
   addDependency: (taskId, blockingId) => {
     if (hasCircularDependency(state.tasks, taskId, blockingId)) return { ok: false, reason: 'circular' }
     state.tasks = state.tasks.map(t => {
@@ -226,59 +234,19 @@ export const store = {
     return { ok: true }
   },
 
+  // Due date helpers (Phase 3)
   getDueStatus,
   doneEarly,
-  getOverdueCount: () => state.tasks.filter(t => { 
-    const s = getDueStatus(t)
-    return s && s.status === 'overdue' 
-  }).length,
+  getOverdueCount: () => state.tasks.filter(t => { const s = getDueStatus(t); return s && s.status === 'overdue' }).length,
   markDone: (taskId) => {
     state.tasks = state.tasks.map(t => t.id === taskId ? { ...t, status: 'done' } : t)
-    saveState(); notifyListeners()
+    notifyListeners()
     store.addActivity({ icon: '✅', action: `Completed task: ${state.tasks.find(t => t.id === taskId)?.title?.slice(0,30) || taskId}` })
     syncToSupabase({ tasks: state.tasks })
   },
-  deleteTask: async (taskId) => {
-    const taskToDelete = state.tasks.find(t => t.id === taskId)
-    if (!taskToDelete) return
-
-    // 1. Remove from local tasks
-    state.tasks = state.tasks.filter(t => t.id !== taskId)
-
-    // 2. Cleanup dependencies in other tasks
-    // If other tasks were 'blocked by' this one, remove it from their 'dependencies'
-    // If other tasks were 'blocking' this one, remove it from their 'dependsOn'
-    state.tasks = state.tasks.map(t => {
-      let changed = false
-      let newDeps = t.dependencies || []
-      let newDepOn = t.dependsOn || []
-
-      if (newDeps.includes(taskId)) {
-        newDeps = newDeps.filter(id => id !== taskId)
-        changed = true
-      }
-      if (newDepOn.includes(taskId)) {
-        newDepOn = newDepOn.filter(id => id !== taskId)
-        changed = true
-      }
-
-      return changed ? { ...t, dependencies: newDeps, dependsOn: newDepOn } : t
-    })
-
-    // 3. Save and Notify
-    saveState()
-    notifyListeners()
-
-    // 4. Activity Log
-    store.addActivity({ icon: '🗑️', action: `Deleted task: ${taskToDelete.title || taskId}` })
-
-    // 5. Supabase Sync
-    const { error } = await supabase.from('tasks').delete().eq('id', taskId)
-    if (error) console.warn('[Supabase] Delete error:', error)
-  },
 }
 
-// Utility functions
+// keep existing utility functions unchanged
 function hasCircularDependency(allTasks, taskId, dependencyId, visited = new Set()) {
   if (taskId === dependencyId) return true
   if (visited.has(dependencyId)) return false
@@ -334,7 +302,7 @@ function saveState() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)) } catch (e) { console.warn('[store] Save failed:', e) }
 }
 
-// Initial boot
+// Initialize on first load
 initializeStore()
 
 export default store
