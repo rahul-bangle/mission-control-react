@@ -354,18 +354,27 @@ export default function TaskBoard() {
 
 
       {/* Kanban Columns */}
-      <div className="flex gap-4 h-full pb-6 overflow-x-auto snap-x snap-mandatory no-scrollbar md:snap-none">
-        {Object.entries(colData).map(([colId, tasks]) => (
-          <div key={colId} id={`col-${colId}`} className="flex-1 min-w-[85vw] md:min-w-0 flex flex-col snap-center"
+      <div className="flex h-full pb-6 overflow-x-auto snap-x snap-mandatory no-scrollbar md:snap-none"
+        style={{ borderRadius: 'var(--radius-card)', border: '1px solid var(--border-default)', background: 'var(--bg-card)', boxShadow: 'var(--shadow-card)' }}>
+        {Object.entries(colData).map(([colId, tasks], colIndex) => (
+          <div key={colId} id={`col-${colId}`}
+            className="flex-1 min-w-[85vw] md:min-w-0 flex flex-col snap-center"
             onDragOver={e => e.preventDefault()}
-            onDrop={e => { e.preventDefault(); if (dragId) { updateTask(dragId, { status: colId }); setDragId(null) } }}>
-            <div className="flex items-center justify-between mb-4 px-3 py-2"
-              style={{ background: 'var(--bg-column-header)', borderRadius: 'var(--radius-card)' }}>
+            onDrop={e => { e.preventDefault(); if (dragId) { updateTask(dragId, { status: colId }); setDragId(null) } }}
+            style={{
+              borderRight: colIndex < Object.keys(colData).length - 1 ? '1px solid var(--border-default)' : 'none',
+            }}>
+            <div className="flex items-center justify-between px-4 py-3"
+              style={{ borderBottom: '1px solid var(--border-default)' }}>
               <h3 className="text-[11px] font-bold tracking-wider" style={{ color: statusColors[colId]?.text || 'var(--text-tertiary)' }}>
-                {columns.find(c => c.id === colId)?.label || colId.toUpperCase()} ({tasks.length})
+                {columns.find(c => c.id === colId)?.label || colId.toUpperCase()}
               </h3>
+              <span className="text-[10px] px-2 py-0.5 rounded-full font-bold"
+                style={{ background: (statusColors[colId]?.bg || 'var(--color-tag-bg)'), color: (statusColors[colId]?.text || 'var(--text-tertiary)') }}>
+                {tasks.length}
+              </span>
             </div>
-            <div className="space-y-2 overflow-y-auto flex-1">
+            <div className="space-y-2 overflow-y-auto flex-1 p-3">
               {tasks
                 .filter(t => filter === 'all' || t.priority === 'urgent')
                 .map(task => {
