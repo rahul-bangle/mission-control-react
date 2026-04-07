@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+﻿import { useState, useRef, useEffect } from 'react'
 import { useTheme } from '../ThemeContext'
 import { useStore } from '../StoreContext'
 
@@ -14,10 +14,21 @@ function getDueInfo(task) {
   const d1 = new Date(task.dueDate); d1.setHours(0,0,0,0)
   const d2 = new Date(); d2.setHours(0,0,0,0)
   const diff = Math.ceil((d1 - d2) / (1000*60*60*24))
-  if (diff < 0) return { status: 'overdue', label: `${Math.abs(diff)}d overdue` }
+  if (diff < 0) return { status: 'overdue', label: "${Math.abs(diff)}d overdue" }
   if (diff === 0) return { status: 'today', label: 'Due today' }
-  if (diff <= 3) return { status: 'soon', label: `${diff}d left` }
-  return { status: 'upcoming', label: `${diff}d left` }
+  if (diff <= 3) return { status: 'soon', label: "${diff}d left" }
+  return { status: 'upcoming', label: "${diff}d left" }
+}
+
+function getStaleInfo(task, boardDate) {
+  if (!task.dueDate || task.status === 'done') return null
+  const origin = new Date(task.dueDate); origin.setHours(0, 0, 0, 0)
+  const viewing = new Date(boardDate); viewing.setHours(0, 0, 0, 0)
+  const diff = Math.ceil((viewing - origin) / (1000 * 60 * 60 * 24))
+  if (diff <= 0) return null
+  if (diff === 1) return { level: 'warn', days: diff, label: '1d late', color: '#f59e0b', bg: 'rgba(245,158,11,0.08)' }
+  if (diff <= 3) return { level: 'alert', days: diff, label: "${diff}d late", color: '#f97316', bg: 'rgba(249,115,22,0.1)' }
+  return { level: 'stale', days: diff, label: "STALE ${diff}d", color: '#ef4444', bg: 'rgba(239,68,68,0.12)' }
 }
 
 const statusColors = {
@@ -81,7 +92,7 @@ export default function TaskBoard() {
   const updateTask = (id, changes) => {
     const task = allTasks.find(t => t.id === id)
     store.patchState({ tasks: allTasks.map(t => t.id === id ? { ...t, ...changes } : t) })
-    store.addActivity({ icon: '▣', action: `Updated: ${task?.title?.slice(0, 30) || id}` })
+    store.addActivity({ icon: '▣', action: "Updated: ${task?.title?.slice(0, 30) || id}" })
   }
 
   const createTask = () => {
@@ -97,7 +108,7 @@ export default function TaskBoard() {
       comments: [], subtasks: [], dependencies: [], dependsOn: [],
     }
     store.patchState({ tasks: [...allTasks, task] })
-    store.addActivity({ icon: '▣', action: `Created: ${title}` })
+    store.addActivity({ icon: '▣', action: "Created: ${title}" })
     setShowModal(false)
     newTaskRef.current = { title: '', priority: 'medium', assignee: 'rahul', dueDate: boardDate }
   }
@@ -108,41 +119,79 @@ export default function TaskBoard() {
     const subs = task.subtasks.map(s => s.id === sid ? { ...s, completed: !s.completed } : s)
     const allDone = subs.length > 0 && subs.every(s => s.completed)
     store.patchState({ tasks: allTasks.map(t => t.id === taskId ? { ...t, subtasks: subs, status: allDone ? 'done' : t.status } : t) })
-    if (allDone) store.addActivity({ icon: '✅', action: `Auto-completed: ${task.title.slice(0,30)}` })
+    if (allDone) store.addActivity({ icon: '✅', action: "Auto-completed: ${task.title.slice(0,30)}" })
   }
 
   const addSubtask = (taskId) => {
     if (!subtaskInput.trim()) return
     const task = allTasks.find(t => t.id === taskId)
-    const ns = { id: `st-${Date.now()}`, title: subtaskInput.trim(), completed: false }
+    const ns = { id: "st-${Date.now()}", title: subtaskInput.trim(), completed: false }
     store.patchState({ tasks: allTasks.map(t => t.id === taskId ? { ...t, subtasks: [...(t.subtasks || []), ns] } : t) })
-    store.addActivity({ icon: '☐', action: `Subtask → ${task?.title?.slice(0,30)}` })
+    store.addActivity({ icon: '☐', action: "Subtask → ${task?.title?.slice(0,30)}" })
     setSubtaskInput('')
   }
 
   const addComment = (taskId) => {
     if (!commentInput.trim()) return
     const task = allTasks.find(t => t.id === taskId)
-    const c = { id: `c-${Date.now()}`, role: 'Rahul', text: commentInput.trim(), time: new Date().toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'}), read: true }
+    const c = { id: "c-${Date.now()}", role: 'Rahul', text: commentInput.trim(), time: new Date().toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'}), read: true }
     store.patchState({ tasks: allTasks.map(t => t.id === taskId ? { ...t, comments: [...(t.comments || []), c] } : t) })
-    store.addActivity({ icon: '💬', action: `Comment on: ${task?.title?.slice(0,30)}` })
+    store.addActivity({ icon: '💬', action: "Comment on: ${task?.title?.slice(0,30)}" })
     setCommentInput('')
   }
 
-  // Filtering by selected board date
-  const dateFilteredTasks = allTasks.filter(t => t.dueDate === boardDate)
+  // ── Carry-forward logic ────────────────────────────────────────
+  // Tasks explicitly on this date
+  const ownTasks = allTasks.filter(t => t.dueDate === boardDate)
+
+  // Tasks from a past date that are still unfinished (exclude done, exclude no-date)
+  const carriedTasks = allTasks.filter(t =>
+    t.dueDate &&
+    t.dueDate < boardDate &&
+    t.status !== 'done'
+  )
+
+  // On a past date we show own tasks only (with ghost style)
+  // On today/future we also pull in carried tasks
+  const todayStr = new Date().toISOString().slice(0, 10)
+  const isViewingPast = boardDate < todayStr
+
+  // Build carried sets (for present/future only)
+  const carriedInProgress = isViewingPast ? [] : carriedTasks.filter(t => t.status === 'in-progress')
+  const carriedReview     = isViewingPast ? [] : carriedTasks.filter(t => t.status === 'review')
+  const carriedBacklog    = isViewingPast ? [] : carriedTasks.filter(t => t.status === 'backlog' || t.status === 'pending')
+
+  // Deduplicate helpers (own tasks take priority)
+  const ownIds = new Set(ownTasks.map(t => t.id))
+  const filterCarried = arr => arr.filter(t => !ownIds.has(t.id))
 
   const colData = {
-    'backlog': dateFilteredTasks.filter(t => t.status === 'backlog' || t.status === 'pending'),
-    'in-progress': dateFilteredTasks.filter(t => t.status === 'in-progress'),
-    'review': dateFilteredTasks.filter(t => t.status === 'review'),
-    'done': dateFilteredTasks.filter(t => t.status === 'done'),
+    'backlog': [
+      ...filterCarried(carriedBacklog),   // carried first — high priority
+      ...ownTasks.filter(t => t.status === 'backlog' || t.status === 'pending'),
+    ],
+    'in-progress': [
+      ...filterCarried(carriedInProgress),
+      ...ownTasks.filter(t => t.status === 'in-progress'),
+    ],
+    'review': [
+      ...filterCarried(carriedReview),
+      ...ownTasks.filter(t => t.status === 'review'),
+    ],
+    'done': ownTasks.filter(t => t.status === 'done'), // done never carries forward
   }
+
+  // Helper to know if a task is a carried-in task (not originally on boardDate)
+  const isCarried = (task) => task.dueDate !== boardDate
+  const isPastGhost = (task) => isViewingPast && task.dueDate === boardDate && task.status !== 'done'
 
   const accent = isLight ? '#007AFF' : 'var(--accent)'
   const primaryBtnStyle = isLight
     ? { background: '#007AFF', color: '#fff', fontWeight: 600 }
     : { background: 'var(--accent)', color: '#000' }
+
+  // Flat list for header count display
+  const dateFilteredTasks = [...new Set(Object.values(colData).flat())]
 
   return (
     <div className="flex flex-col h-full">
@@ -151,7 +200,7 @@ export default function TaskBoard() {
         <div className="flex items-center gap-4">
           <div>
             <h1 className="text-[18px] font-bold tracking-wider">TASK BOARD</h1>
-            <p className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>{dateFilteredTasks.length} tasks for selected date</p>
+            <p className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>{ownTasks.length} tasks · {Object.values(colData).flat().filter(t => isCarried(t)).length} carried</p>
           </div>
 
           {/* Premium Date Picker */}
@@ -169,7 +218,7 @@ export default function TaskBoard() {
               style={{
                 background: showDatePicker ? (isLight ? '#007AFF15' : 'rgba(25,195,255,0.08)') : 'var(--bg-surface)',
                 borderColor: showDatePicker ? accent : 'var(--border-default)',
-                boxShadow: showDatePicker ? `0 0 0 2px ${accent}30` : 'none',
+                boxShadow: showDatePicker ? "0 0 0 2px ${accent}30" : 'none',
               }}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -199,14 +248,14 @@ export default function TaskBoard() {
               const cells = []
               for (let i = adjustedFirst - 1; i >= 0; i--) {
                 const d = prevMonthDays - i
-                cells.push({ day: d, current: false, dateStr: `${year}-${String(month === 0 ? 12 : month).padStart(2,'0')}-${String(d).padStart(2,'0')}` })
+                cells.push({ day: d, current: false, dateStr: "${year}-${String(month === 0 ? 12 : month).padStart(2,'0')}-${String(d).padStart(2,'0')}" })
               }
               for (let d = 1; d <= daysInMonth; d++) {
-                cells.push({ day: d, current: true, dateStr: `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}` })
+                cells.push({ day: d, current: true, dateStr: "${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}" })
               }
               const remaining = 42 - cells.length
               for (let d = 1; d <= remaining; d++) {
-                cells.push({ day: d, current: false, dateStr: `${year}-${String(month === 11 ? 1 : month+2).padStart(2,'0')}-${String(d).padStart(2,'0')}` })
+                cells.push({ day: d, current: false, dateStr: "${year}-${String(month === 11 ? 1 : month+2).padStart(2,'0')}-${String(d).padStart(2,'0')}" })
               }
               return (
                 <div
@@ -215,7 +264,7 @@ export default function TaskBoard() {
                     width: '300px',
                     background: isLight ? '#fff' : 'rgba(14,17,25,0.98)',
                     border: '1px solid var(--border-default)',
-                    boxShadow: `0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px ${accent}20`,
+                    boxShadow: "0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px ${accent}20",
                     backdropFilter: 'blur(20px)',
                   }}
                 >
@@ -273,7 +322,7 @@ export default function TaskBoard() {
                           }}
                           className="w-9 h-9 mx-auto flex items-center justify-center rounded-lg text-[12px] font-medium transition-all hover:scale-110"
                           style={{
-                            background: isSelected ? accent : isToday ? `${accent}20` : 'transparent',
+                            background: isSelected ? accent : isToday ? "${accent}20" : 'transparent',
                             color: isSelected ? '#fff' : isFaded ? 'var(--text-tertiary)' : isToday ? accent : 'var(--text-primary)',
                             fontWeight: isSelected || isToday ? '700' : '500',
                             opacity: isFaded ? 0.35 : 1,
@@ -294,7 +343,7 @@ export default function TaskBoard() {
                         setShowDatePicker(false)
                       }}
                       className="flex-1 py-2 rounded-xl text-[11px] font-bold transition-all hover:opacity-80"
-                      style={{ background: `${accent}15`, color: accent }}
+                      style={{ background: "${accent}15", color: accent }}
                     >
                       Today
                     </button>
@@ -312,7 +361,7 @@ export default function TaskBoard() {
                   background: filter === fId ? accent : 'transparent',
                   color: filter === fId ? (isLight ? '#fff' : 'var(--bg-app)') : 'var(--text-secondary)',
                 }}>
-                {fId === 'all' ? `ALL (${allTasks.length})` : 'URGENT'}
+                {fId === 'all' ? "ALL (${allTasks.length})" : 'URGENT'}
               </button>
             ))}
           </div>
@@ -337,7 +386,7 @@ export default function TaskBoard() {
           <button
             key={c.id}
             onClick={() => {
-              const el = document.getElementById(`col-${c.id}`);
+              const el = document.getElementById("col-${c.id}");
               el?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
             }}
             className="flex-shrink-0 px-4 py-2 rounded-full text-[10px] font-bold border transition-all"
@@ -357,7 +406,7 @@ export default function TaskBoard() {
       <div className="flex h-full pb-6 overflow-x-auto snap-x snap-mandatory no-scrollbar md:snap-none"
         style={{ borderRadius: 'var(--radius-card)', border: '1px solid var(--border-default)', background: 'var(--bg-card)', boxShadow: 'var(--shadow-card)' }}>
         {Object.entries(colData).map(([colId, tasks], colIndex) => (
-          <div key={colId} id={`col-${colId}`}
+          <div key={colId} id={"col-${colId}"}
             className="flex-1 min-w-[85vw] md:min-w-0 flex flex-col snap-center"
             onDragOver={e => e.preventDefault()}
             onDrop={e => { e.preventDefault(); if (dragId) { updateTask(dragId, { status: colId }); setDragId(null) } }}
@@ -384,25 +433,48 @@ export default function TaskBoard() {
                   const isOverdue = dueInfo?.status === 'overdue'
                   const isToday = dueInfo?.status === 'today'
                   const doneEarly = task.status === 'done' && dueInfo?.status === 'done-early'
+                  const stale = getStaleInfo(task, boardDate)
+                  const carried = isCarried(task)
+                  const ghost = isPastGhost(task)
+
+                  const cardBorderColor = stale ? stale.color
+                    : isOverdue && !carried ? 'var(--color-urgent)'
+                    : ghost ? 'var(--border-default)'
+                    : 'var(--border-card)'
+                  const cardBg = stale ? stale.bg
+                    : ghost ? (isLight ? 'rgba(0,0,0,0.02)' : 'rgba(255,255,255,0.02)')
+                    : 'var(--bg-card)'
 
                   return (
                     <div key={task.id} draggable onDragStart={() => setDragId(task.id)}
                       onClick={() => setSelectedTask(selectedTask?.id === task.id ? null : task)}
-                      className="p-3 rounded-lg cursor-pointer transition-all"
+                      className={"p-3 rounded-lg cursor-pointer transition-all"}
                       style={{
-                        background: 'var(--bg-card)',
-                        boxShadow: 'var(--shadow-card)',
-                        border: `1px solid ${isOverdue ? 'var(--color-urgent-bg)' : 'var(--border-card)'}`,
-                        opacity: isBlocked ? 0.5 : 1,
-                        animation: isOverdue ? 'pulse-red 2s ease-in-out infinite' : doneEarly ? 'sparkle-green 1.5s ease-in-out infinite' : 'none',
+                        background: cardBg,
+                        boxShadow: stale ? "0 0 0 1.5px 35, var(--shadow-card)" : 'var(--shadow-card)',
+                        border: "1.5px  ",
+                        borderLeft: stale ? "3px solid " : undefined,
+                        opacity: ghost ? 0.45 : isBlocked ? 0.5 : 1,
+                        animation: isOverdue && !stale && !carried ? 'pulse-red 2s ease-in-out infinite' : doneEarly ? 'sparkle-green 1.5s ease-in-out infinite' : 'none',
                       }}
-                      onMouseEnter={e => { e.currentTarget.style.boxShadow = isLight ? '0 4px 16px rgba(0,0,0,0.12)' : '0 4px 16px rgba(0,0,0,0.5)' }}
-                      onMouseLeave={e => { e.currentTarget.style.boxShadow = 'var(--shadow-card)' }}>
+                      onMouseEnter={e => { e.currentTarget.style.opacity = ghost ? '0.7' : '1'; e.currentTarget.style.boxShadow = isLight ? '0 4px 16px rgba(0,0,0,0.12)' : '0 4px 16px rgba(0,0,0,0.5)' }}
+                      onMouseLeave={e => { e.currentTarget.style.opacity = ghost ? '0.45' : isBlocked ? '0.5' : '1'; e.currentTarget.style.boxShadow = stale ? "0 0 0 1.5px 35, var(--shadow-card)" : 'var(--shadow-card)' }}>
 
                       {/* Badges row */}
                       <div className="flex flex-wrap gap-1 mb-2">
-                        {isOverdue && <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={priorityPill.urgent}>🔥 {dueInfo.label}</span>}
-                        {isToday && <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={priorityPill.high}>📅 {dueInfo.label}</span>}
+                        {ghost && <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: 'var(--bg-surface)', color: 'var(--text-tertiary)', border: '1px dashed var(--border-default)' }}>↗ Carried</span>}
+                        {carried && !ghost && stale && (
+                          <span className="text-[8px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: stale.bg, color: stale.color, border: "1px solid 50" }}>
+                            {stale.level === 'stale' ? '🔴' : stale.level === 'alert' ? '🟠' : '🟡'} {stale.label}
+                          </span>
+                        )}
+                        {carried && !ghost && (
+                          <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={{ background: 'var(--bg-surface)', color: 'var(--text-secondary)' }}>
+                            ↗ {new Date(task.dueDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </span>
+                        )}
+                        {!carried && isOverdue && <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={priorityPill.urgent}>🔥 {dueInfo.label}</span>}
+                        {!carried && isToday && <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={priorityPill.high}>📅 {dueInfo.label}</span>}
                         {isBlocked && <span className="text-[8px] px-1.5 py-0.5 rounded-full" style={statusColors.review}>🔒 blocked</span>}
                         {doneEarly && <span className="text-[8px]" style={{ color: 'var(--color-done)' }}>✨ done early</span>}
                       </div>
@@ -434,7 +506,7 @@ export default function TaskBoard() {
                         <div className="w-full h-1 rounded-full mb-2 overflow-hidden" style={{ background: 'var(--color-progress-bg)' }}>
                           <div className="h-1 rounded-full transition-all"
                             style={{
-                              width: `${(task.subtasks.filter(s=>s.completed).length / task.subtasks.length) * 100}`,
+                              width: "${(task.subtasks.filter(s=>s.completed).length / task.subtasks.length) * 100}",
                               background: task.subtasks.every(s=>s.completed) ? 'var(--color-done)' : accent,
                             }}></div>
                         </div>
@@ -481,7 +553,7 @@ export default function TaskBoard() {
       {selectedTask && (
         <div className="fixed inset-0 flex items-end md:items-center justify-center z-[60]" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => setSelectedTask(null)}>
           <div className="rounded-t-2xl md:rounded-xl p-6 w-full md:w-[500px] max-h-[90vh] overflow-y-auto transition-transform"
-            style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-card)', border: `1px solid var(--border-default)` }}
+            style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-card)', border: "1px solid var(--border-default)" }}
             onClick={e => e.stopPropagation()}>
 
             <div className="flex justify-between items-start mb-1">

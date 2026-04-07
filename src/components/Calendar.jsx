@@ -75,6 +75,7 @@ export default function Calendar() {
   const [showQuickAdd, setShowQuickAdd] = useState(false)
   const [quickAddData, setQuickAddData] = useState({ title: '', time: '10:00 AM', type: 'meeting' })
   const [draggedTask, setDraggedTask] = useState(null)
+  const [droppingOn, setDroppingOn] = useState(null)
 
   const grid = getMonthGrid(viewDate.year, viewDate.month)
   const weekGrid = getWeekGrid(viewDate.year, viewDate.month, viewDate.day)
@@ -114,12 +115,13 @@ export default function Calendar() {
     setQuickAddData({ title: '', time: '10:00 AM', type: 'meeting' })
   }
 
-  const handleDropOnDay = (dayNum) => {
+  const handleDropOnDay = (d) => {
     if (!draggedTask) return
-    const dueDate = `${viewDate.year}-${String(viewDate.month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`
+    const dueDate = `${d.year}-${String(d.month + 1).padStart(2,'0')}-${String(d.day).padStart(2,'0')}`
     store.patchState({ tasks: tasks.map(t => t.id === draggedTask.id ? { ...t, dueDate } : t) })
-    store.addActivity({ icon: '📅', action: `Set due date for "${draggedTask.title}" to ${dueDate}` })
+    store.addActivity({ icon: '📅', action: `Rescheduled "${draggedTask.title}" → ${dueDate}` })
     setDraggedTask(null)
+    setDroppingOn(null)
   }
 
   const getConflicts = () => grid.filter(d => d.current && getEventsForDay(d).length >= 3).map(d => ({ day: d.day, count: getEventsForDay(d).length }))
@@ -339,18 +341,37 @@ export default function Calendar() {
                   return (
                     <div key={i}
                       onClick={() => d.current && setSelectedDay({ ...d, events: dayEvents, tasks: dayTasks })}
-                      onDragOver={e => { e.preventDefault(); e.currentTarget.style.background = `${accent}08` }}
-                      onDragLeave={e => { e.currentTarget.style.background = isTodayCell ? `${accent}10` : 'transparent' }}
-                      onDrop={e => { e.stopPropagation(); if (draggedTask) handleDropOnDay(d.day) }}
+                      onDragOver={e => { e.preventDefault(); setDroppingOn(i) }}
+                      onDragLeave={() => setDroppingOn(null)}
+                      onDrop={e => { e.stopPropagation(); if (draggedTask && d.current) handleDropOnDay(d) }}
                       className="p-1 cursor-pointer transition-colors border-r border-b relative group"
-                      style={{ background: isTodayCell ? `${accent}08` : 'transparent', borderColor: 'var(--border-soft)' }}>
+                      style={{
+                        background: droppingOn === i && d.current
+                          ? `${accent}18`
+                          : isTodayCell ? `${accent}08` : 'transparent',
+                        borderColor: 'var(--border-soft)',
+                        boxShadow: droppingOn === i && d.current ? `inset 0 0 0 2px ${accent}60` : 'none',
+                        transition: 'all 0.15s ease',
+                      }}>
                       <div className="flex justify-between p-1">
                         <span className={`text-[10px] font-medium ${d.current ? 'text-primary' : 'text-disabled'}`}>{d.day}</span>
                         {isTodayCell && <div className="w-1.5 h-1.5 rounded-full bg-accent"></div>}
                       </div>
                       <div className="space-y-0.5 px-0.5">
                         {dayTasks.slice(0, 2).map(t => (
-                          <div key={t.id} className="text-[8px] truncate px-1 py-0.5 rounded-md" style={{ background: getTaskColor(t, accent).bg, color: getTaskColor(t, accent).color }}>
+                          <div
+                            key={t.id}
+                            draggable
+                            onDragStart={e => { e.stopPropagation(); setDraggedTask(t) }}
+                            onDragEnd={() => setDroppingOn(null)}
+                            className="text-[8px] truncate px-1 py-0.5 rounded-md cursor-grab active:cursor-grabbing select-none"
+                            style={{
+                              background: getTaskColor(t, accent).bg,
+                              color: getTaskColor(t, accent).color,
+                              opacity: draggedTask?.id === t.id ? 0.4 : 1,
+                              transition: 'opacity 0.15s',
+                            }}
+                          >
                             {t.title}
                           </div>
                         ))}
