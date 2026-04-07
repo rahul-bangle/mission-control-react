@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useTheme } from '../ThemeContext'
 import { useStore } from '../StoreContext'
 
@@ -45,13 +45,24 @@ export default function TaskBoard() {
   const allTasks = state.tasks || []
   const team = state.team || []
 
+  const [boardDate, setBoardDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [showDatePicker, setShowDatePicker] = useState(false)
+  const [pickerViewDate, setPickerViewDate] = useState(() => { const n = new Date(); return { year: n.getFullYear(), month: n.getMonth() } })
+  const pickerRef = useRef(null)
+
+  useEffect(() => {
+    if (!showDatePicker) return
+    const handler = (e) => { if (pickerRef.current && !pickerRef.current.contains(e.target)) setShowDatePicker(false) }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [showDatePicker])
   const [filter, setFilter] = useState('all')
   const [dragId, setDragId] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [depModal, setDepModal] = useState(null)
   const [selectedTask, setSelectedTask] = useState(null)
 
-  const newTaskRef = useRef({ title: '', priority: 'medium', assignee: 'rahul', dueDate: null })
+  const newTaskRef = useRef({ title: '', priority: 'medium', assignee: 'rahul', dueDate: boardDate })
   const [subtaskInput, setSubtaskInput] = useState('')
   const [commentInput, setCommentInput] = useState('')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -74,17 +85,21 @@ export default function TaskBoard() {
   }
 
   const createTask = () => {
+    if (!newTaskRef.current.dueDate) {
+      alert('Please select a due date. Every task must be scheduled on the timeline.');
+      return;
+    }
     const title = newTaskRef.current.title || 'New Task'
     const task = {
       id: store.nextId(), title, tags: [],
       priority: newTaskRef.current.priority, assignee: newTaskRef.current.assignee,
-      status: 'backlog', estimate: '1d', dueDate: newTaskRef.current.dueDate || null,
+      status: 'backlog', estimate: '1d', dueDate: newTaskRef.current.dueDate,
       comments: [], subtasks: [], dependencies: [], dependsOn: [],
     }
     store.patchState({ tasks: [...allTasks, task] })
     store.addActivity({ icon: '▣', action: `Created: ${title}` })
     setShowModal(false)
-    newTaskRef.current = { title: '', priority: 'medium', assignee: 'rahul', dueDate: null }
+    newTaskRef.current = { title: '', priority: 'medium', assignee: 'rahul', dueDate: boardDate }
   }
 
   const toggleSubtask = (taskId, sid) => {
@@ -114,11 +129,14 @@ export default function TaskBoard() {
     setCommentInput('')
   }
 
+  // Filtering by selected board date
+  const dateFilteredTasks = allTasks.filter(t => t.dueDate === boardDate)
+
   const colData = {
-    'backlog': allTasks.filter(t => t.status === 'backlog'),
-    'in-progress': allTasks.filter(t => t.status === 'in-progress'),
-    'review': allTasks.filter(t => t.status === 'review'),
-    'done': allTasks.filter(t => t.status === 'done'),
+    'backlog': dateFilteredTasks.filter(t => t.status === 'backlog' || t.status === 'pending'),
+    'in-progress': dateFilteredTasks.filter(t => t.status === 'in-progress'),
+    'review': dateFilteredTasks.filter(t => t.status === 'review'),
+    'done': dateFilteredTasks.filter(t => t.status === 'done'),
   }
 
   const accent = isLight ? '#007AFF' : 'var(--accent)'
@@ -133,8 +151,159 @@ export default function TaskBoard() {
         <div className="flex items-center gap-4">
           <div>
             <h1 className="text-[18px] font-bold tracking-wider">TASK BOARD</h1>
-            <p className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>{allTasks.length} tasks synced</p>
+            <p className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>{dateFilteredTasks.length} tasks for selected date</p>
           </div>
+
+          {/* Premium Date Picker */}
+          <div className="relative" ref={pickerRef}>
+            {/* Trigger Button */}
+            <button
+              onClick={() => {
+                setPickerViewDate(() => {
+                  const d = new Date(boardDate)
+                  return { year: d.getFullYear(), month: d.getMonth() }
+                })
+                setShowDatePicker(p => !p)
+              }}
+              className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border transition-all hover:scale-[1.02] active:scale-[0.98]"
+              style={{
+                background: showDatePicker ? (isLight ? '#007AFF15' : 'rgba(25,195,255,0.08)') : 'var(--bg-surface)',
+                borderColor: showDatePicker ? accent : 'var(--border-default)',
+                boxShadow: showDatePicker ? `0 0 0 2px ${accent}30` : 'none',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={accent} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              <span className="text-[12px] font-bold" style={{ color: 'var(--text-primary)' }}>
+                {new Date(boardDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" style={{ color: 'var(--text-tertiary)', transform: showDatePicker ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+            </button>
+
+            {/* Dropdown Calendar */}
+            {showDatePicker && (() => {
+              const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December']
+              const dayNames = ['Mo','Tu','We','Th','Fr','Sa','Su']
+              const { year, month } = pickerViewDate
+              const firstDay = new Date(year, month, 1).getDay()
+              const adjustedFirst = (firstDay === 0 ? 7 : firstDay) - 1
+              const daysInMonth = new Date(year, month + 1, 0).getDate()
+              const todayStr = new Date().toISOString().slice(0, 10)
+              const prevMonthDays = new Date(year, month, 0).getDate()
+              const cells = []
+              for (let i = adjustedFirst - 1; i >= 0; i--) {
+                const d = prevMonthDays - i
+                cells.push({ day: d, current: false, dateStr: `${year}-${String(month === 0 ? 12 : month).padStart(2,'0')}-${String(d).padStart(2,'0')}` })
+              }
+              for (let d = 1; d <= daysInMonth; d++) {
+                cells.push({ day: d, current: true, dateStr: `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}` })
+              }
+              const remaining = 42 - cells.length
+              for (let d = 1; d <= remaining; d++) {
+                cells.push({ day: d, current: false, dateStr: `${year}-${String(month === 11 ? 1 : month+2).padStart(2,'0')}-${String(d).padStart(2,'0')}` })
+              }
+              return (
+                <div
+                  className="absolute top-[calc(100%+8px)] left-0 z-[200] rounded-2xl overflow-hidden"
+                  style={{
+                    width: '300px',
+                    background: isLight ? '#fff' : 'rgba(14,17,25,0.98)',
+                    border: '1px solid var(--border-default)',
+                    boxShadow: `0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px ${accent}20`,
+                    backdropFilter: 'blur(20px)',
+                  }}
+                >
+                  {/* Calendar Header */}
+                  <div className="px-4 pt-4 pb-3" style={{ background: accent }}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => setPickerViewDate(p => {
+                            const d = new Date(p.year, p.month - 1)
+                            return { year: d.getFullYear(), month: d.getMonth() }
+                          })}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/20 transition-all text-white text-[12px] font-bold"
+                        >‹</button>
+                      </div>
+                      <span className="text-[13px] font-bold text-white">
+                        {monthNames[month]}, {year}
+                      </span>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => setPickerViewDate(p => {
+                            const d = new Date(p.year, p.month + 1)
+                            return { year: d.getFullYear(), month: d.getMonth() }
+                          })}
+                          className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white/20 transition-all text-white text-[12px] font-bold"
+                        >›</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Day Names */}
+                  <div className="grid grid-cols-7 px-3 pt-3 pb-1">
+                    {dayNames.map(d => (
+                      <div key={d} className="text-center text-[10px] font-bold py-1"
+                        style={{ color: (d === 'Sa' || d === 'Su') ? 'var(--color-urgent)' : 'var(--text-tertiary)' }}>
+                        {d}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Day Grid */}
+                  <div className="grid grid-cols-7 px-3 pb-4 gap-y-1">
+                    {cells.map((cell, i) => {
+                      const isSelected = cell.dateStr === boardDate
+                      const isToday = cell.dateStr === todayStr
+                      const isFaded = !cell.current
+                      return (
+                        <button
+                          key={i}
+                          onClick={() => {
+                            if (cell.current) {
+                              setBoardDate(cell.dateStr)
+                              setShowDatePicker(false)
+                            }
+                          }}
+                          className="w-9 h-9 mx-auto flex items-center justify-center rounded-lg text-[12px] font-medium transition-all hover:scale-110"
+                          style={{
+                            background: isSelected ? accent : isToday ? `${accent}20` : 'transparent',
+                            color: isSelected ? '#fff' : isFaded ? 'var(--text-tertiary)' : isToday ? accent : 'var(--text-primary)',
+                            fontWeight: isSelected || isToday ? '700' : '500',
+                            opacity: isFaded ? 0.35 : 1,
+                            cursor: cell.current ? 'pointer' : 'default',
+                          }}
+                        >
+                          {cell.day}
+                        </button>
+                      )
+                    })}
+                  </div>
+
+                  {/* Footer */}
+                  <div className="px-4 pb-4 flex gap-2">
+                    <button
+                      onClick={() => {
+                        setBoardDate(todayStr)
+                        setShowDatePicker(false)
+                      }}
+                      className="flex-1 py-2 rounded-xl text-[11px] font-bold transition-all hover:opacity-80"
+                      style={{ background: `${accent}15`, color: accent }}
+                    >
+                      Today
+                    </button>
+                  </div>
+                </div>
+              )
+            })()}
+          </div>
+
           <div className="hidden md:flex" style={{ background: 'var(--bg-surface)', borderRadius: 'var(--radius-pill)', padding: '2px' }}>
             {['all', 'urgent'].map(fId => (
               <button key={fId} onClick={() => setFilter(fId)}
@@ -495,6 +664,7 @@ export default function TaskBoard() {
               {assigneeList.map(a => <option key={a.id} value={a.id} style={{ background: 'var(--bg-card)' }}>{a.name}</option>)}
             </select>
             <input type="date" placeholder="Due date"
+              defaultValue={boardDate}
               onChange={e => newTaskRef.current.dueDate = e.target.value}
               className="w-full px-3 py-2 text-[11px] rounded-lg mb-3"
               style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)', color: 'var(--text-primary)', outline: 'none' }} />
