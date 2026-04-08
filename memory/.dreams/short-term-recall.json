@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "updatedAt": "2026-04-07T13:37:58.730Z",
+  "entries": {
+    "memory:memory/2026-04-06.md:32:49": {
+      "key": "memory:memory/2026-04-06.md:32:49",
+      "path": "memory/2026-04-06.md",
+      "startLine": 32,
+      "endLine": 49,
+      "source": "memory",
+      "snippet": "- Supabase `tasks` table has `due_date` field ✅ - Store.js already has `dueDate` in seed data ✅ - UI modal needs DATE PICKER add kar ke fix – pending GitHub/Vercel access **Fix ready:**```jsx<input type=\"date\" value={task.due_date?.split('T')[0] || ''} onChange={(e) => setTask({...task, due_date: e.target.value})} className=\"w-full p-2 border rounded\" />``` **Next step:** GitHub repo access for 5-min patch. ## OpenClaw Config Status - Primary model: **Kimi K2** (MiniMax fallback auto-handled) - Supabase tables: `tasks`, `events`, `activities` live ✅ - LiveActivity component deployed for realtime updates ✅ - Performance: ~90 ms API latency (Mumbai region) → dashboard instant ⚡ ## Pend",
+      "recallCount": 2,
+      "dailyCount": 0,
+      "totalScore": 1.575047227392064,
+      "maxScore": 0.7886398112788428,
+      "firstRecalledAt": "2026-04-07T12:35:26.581Z",
+      "lastRecalledAt": "2026-04-07T13:37:58.730Z",
+      "queryHashes": [
+        "a446be4f87c2",
+        "5fe9da63952b"
+      ],
+      "recallDays": [
+        "2026-04-07"
+      ],
+      "conceptTags": [
+        "due-date",
+        "store.js",
+        "github/vercel",
+        "task.due-date",
+        "e.target.value",
+        "w-full",
+        "p-2",
+        "5-min"
+      ]
+    },
+    "memory:memory/2026-04-07.md:1:29": {
+      "key": "memory:memory/2026-04-07.md:1:29",
+      "path": "memory/2026-04-07.md",
+      "startLine": 1,
+      "endLine": 29,
+      "source": "memory",
+      "snippet": "# 2026-04-07 (Tuesday) - MissionControl React ## ✅ MissionControl Test Load ✅ **Time:** 11:34 AM GMT+5:30 ### MissionControl Date Picker Fix ✅ DONE - **Problem:** Task creation modal missing due_date → calendar blank - **Solution:** Added date picker input in modal component - **Change:** `src/components/TaskModal.jsx` updated with: ```jsx <input type=\"date\" value={task.due_date?.split('T')[0] || ''} onChange={(e) => setTask({...task, due_date: e.target.value})} className=\"w-full p-2 border rounded\" /> ``` - **Testing Result:** Calendar popup working ✅ Due date saving to Supabase ✅ ### MissionControl Status - **Supabase:** Mumbai region active ✅ (90ms latency) - **Real-time:** LiveA",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "totalScore": 0.7944723607243621,
+      "maxScore": 0.7944723607243621,
+      "firstRecalledAt": "2026-04-07T13:35:54.781Z",
+      "lastRecalledAt": "2026-04-07T13:35:54.781Z",
+      "queryHashes": [
+        "630d16699380"
+      ],
+      "recallDays": [
+        "2026-04-07"
+      ],
+      "conceptTags": [
+        "due-date",
+        "src/components/taskmodal.jsx",
+        "task.due-date",
+        "e.target.value",
+        "w-full",
+        "p-2",
+        "real-time",
+        "tuesday"
+      ]
+    },
+    "memory:memory/2026-04-04.md:30:56": {
+      "key": "memory:memory/2026-04-04.md:30:56",
+      "path": "memory/2026-04-04.md",
+      "startLine": 30,
+      "endLine": 56,
+      "source": "memory",
+      "snippet": "- **Due date color coding:** overdue = red pulse (#ef4444 with box-shadow animation), today = yellow accent, done-early = green sparkle ✨, upcoming = normal - **Dependency UX:** 🔒 badge on blocked cards, grey opacity (0.5), modal to add/remove blockers, circular dependency validation blocks creation - **Agent registry:** Central pub/sub system, zombie detection (60s heartbeat timeout) ### Hardware lesson: - Rahul's i3 + HDD is SLOW. Avoid subagents. Avoid reading large files repeatedly. Write directly, minimize tool calls. Batch writes when possible. - Each file write ~2-3 seconds on this machine. Keep edits surgical. ### Phase 5B/5C Partial: - Phase 5B (Calendar enhancements) — only basi",
+      "recallCount": 1,
+      "dailyCount": 0,
+      "totalScore": 0.7613844145330382,
+      "maxScore": 0.7613844145330382,
+      "firstRecalledAt": "2026-04-07T13:37:58.730Z",
+      "lastRecalledAt": "2026-04-07T13:37:58.730Z",
+      "queryHashes": [
+        "5fe9da63952b"
+      ],
+      "recallDays": [
+        "2026-04-07"
+      ],
+      "conceptTags": [
+        "box-shadow",
+        "done-early",
+        "0.5",
+        "add/remove",
+        "pub/sub",
+        "2-3",
+        "5b/5c",
+        "due"
+      ]
+    }
+  }
+}

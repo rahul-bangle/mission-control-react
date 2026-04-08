@@ -71,14 +71,7 @@ _(updated 2026-04-08)_
 ---
 
 
----
 
-## 📋 Pending / Watching
-- FAANG PRD package (content_writer, high priority, due ASAP)
-- Aria live test task (aria, pending)
-- Cron auto-loop setup to be configured in `openclaw.json`
-
----
 
 ## ⚙️ OPERATING PROCEDURES (compact — full version in PROCEDURES.md)
 
