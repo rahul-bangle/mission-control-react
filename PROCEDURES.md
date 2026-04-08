@@ -9,10 +9,12 @@ _Step-by-step runbook for every operation. Follow exactly. No improvisation._
 STARTUP
   ↓
 1. Read MEMORY.md  ← know the context
-2. Heartbeat: write "idle" to live_activities
-3. Fetch pending tasks assigned to aria (oldest first)
-4. If tasks found → START TASK PROCEDURE
-5. If no tasks → write "idle, waiting" heartbeat → wait for cron trigger
+2. RECOVERY: fetch any tasks with status="in-progress" assigned to aria
+   → if found: reset them to "pending" (crash recovery — they were never finished)
+3. Heartbeat: write "idle" to live_activities
+4. Fetch pending tasks assigned to aria (oldest first)
+5. If tasks found → START TASK PROCEDURE
+6. If no tasks → write "idle, waiting" heartbeat → wait for cron trigger
 ```
 
 ---
