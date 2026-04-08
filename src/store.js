@@ -157,9 +157,10 @@ export const store = {
     notifyListeners()
     store.emit('activity:added', act)
     saveState()
-    // Sync activity to DB
-    supabase.from('activities').insert([act]).then(({ error }) => {
+    // Sync activity to DB with verified read-back (no ghost confirmations)
+    supabase.from('activities').insert([act]).select('*').single().then(({ data, error }) => {
       if (error) console.warn('[Supabase] Activity insert error:', error)
+      else console.log('[Supabase] Activity confirmed:', data?.id)
     })
   },
 
@@ -336,5 +337,50 @@ function saveState() {
 
 // Initial boot
 initializeStore()
+
+// ─── Supabase Realtime — live updates from Aria ───────────────
+// Tasks: when Aria updates status/assignee from her side
+supabase.channel('tasks-live')
+  .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'tasks' }, ({ new: updated }) => {
+    state.tasks = state.tasks.map(t => {
+      if (t.id !== updated.id) return t
+      // map DB due_date → UI dueDate
+      const mapped = { ...updated, dueDate: updated.due_date }
+      delete mapped.due_date
+      return { ...t, ...mapped }
+    })
+    notifyListeners()
+  })
+  .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tasks' }, ({ new: created }) => {
+    const mapped = { ...created, dueDate: created.due_date, tags: created.tags || [], subtasks: created.subtasks || [], comments: created.comments || [], dependencies: created.dependencies || [] }
+    delete mapped.due_date
+    if (!state.tasks.find(t => t.id === mapped.id)) {
+      state.tasks = [mapped, ...state.tasks]
+      notifyListeners()
+    }
+  })
+  .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'tasks' }, ({ old }) => {
+    state.tasks = state.tasks.filter(t => t.id !== old.id)
+    notifyListeners()
+  })
+  .subscribe()
+
+// Activities: new entries from Aria's work
+supabase.channel('activities-live')
+  .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'activities' }, ({ new: act }) => {
+    if (!state.activity.find(a => a.id === act.id)) {
+      state.activity = [{ ...act, unread: true }, ...state.activity].slice(0, 50)
+      notifyListeners()
+      store.emit('activity:added', act)
+    }
+  })
+  .subscribe()
+
+// Live activities: Aria heartbeat / status updates
+supabase.channel('live-activities-live')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'live_activities' }, () => {
+    store.emit('agent:heartbeat')
+  })
+  .subscribe()
 
 export default store

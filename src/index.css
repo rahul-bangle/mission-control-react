@@ -2,155 +2,198 @@
 
 @font-face { font-family: '-apple-system'; src: local('SF Pro Text'), local('Segoe UI'), local('Roboto'), local('Arial'); }
 
-/* ── CSS Variables: Dark (default) & Light ─────────────────────────── */
+/* ── CSS Variables: Apple HIG Pro Max ─────────────────────────── */
 :root {
-  /* Dark theme (default) */
-  --bg-app: #0a0a0a;
-  --bg-sidebar: #111111;
-  --bg-card: #111111;
-  --bg-surface: #1a1a1a;
-  --bg-surface-2: #252525;
-  --bg-input: #1a1a1a;
-  --bg-pill-bg: #1a1a1a;
-  --bg-column-header: #1a1a1a;
-  --bg-hover: #1a1a1a;
-  --bg-selected: #1a1a1a40;
-  --bg-sidebar-selected: #252525;
+  /* Dark theme (Level 0/1/2) - Apple HIG */
+  --bg-app: #000000;
+  --bg-sidebar: #1C1C1E;
+  --bg-card: #1C1C1E;
+  --bg-surface: #2C2C2E;
+  --bg-surface-2: #3A3A3C;
+  --bg-input: #1C1C1E;
+  --bg-pill-bg: #2C2C2E;
+  --bg-column-header: #000000;
+  --bg-hover: #3A3A3C;
+  --bg-selected: rgba(0, 122, 255, 0.15);
+  --bg-sidebar-selected: rgba(255, 255, 255, 0.1);
 
-  --border-default: #333333;
-  --border-card: #444444;
-  --border-soft: #2a2a2a;
-  --border-sidebar: #2a2a2a;
-  --border-input: #555555;
+  --border-default: rgba(255, 255, 255, 0.15);
+  --border-card: rgba(255, 255, 255, 0.18);
+  --border-soft: rgba(255, 255, 255, 0.08);
+  --border-sidebar: rgba(255, 255, 255, 0.1);
+  --border-input: rgba(255, 255, 255, 0.2);
 
-  --text-primary: #ffffff;
-  --text-secondary: #888888;
-  --text-tertiary: #555555;
-  --text-disabled: #333333;
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(235, 235, 245, 0.6);
+  --text-tertiary: rgba(235, 235, 245, 0.3);
+  --text-disabled: rgba(235, 235, 245, 0.18);
 
-  --accent: #19c3ff;
-  --accent-hover: #12a8dd;
+  --accent: #007AFF;
+  --accent-hover: #0A84FF;
 
   /* System colors - Dark */
-  --color-urgent: #ef4444;
-  --color-urgent-bg: #ef444420;
-  --color-high: #f59e0b;
-  --color-high-bg: #f59e0b20;
-  --color-medium: #3b82f6;
-  --color-medium-bg: #3b82f620;
-  --color-low: #22c55e;
-  --color-low-bg: #22c55e20;
-  --color-done: #22c55e;
-  --color-done-bg: #22c55e20;
-  --color-review: #a855f7;
-  --color-review-bg: #a855f720;
-  --color-deadline: #ef4444;
-  --color-deadline-bg: #ef444420;
-  --color-calendar: #5ac8fa;
-  --color-calendar-bg: #5ac8fa20;
-  --color-tag-bg: #1a1a1a;
-  --color-tag-text: #888888;
-  --color-progress-bg: #1a1a1a;
+  --color-urgent: #FF453A;
+  --color-urgent-bg: rgba(255, 69, 58, 0.15);
+  --color-high: #FF9F0A;
+  --color-high-bg: rgba(255, 159, 10, 0.15);
+  --color-medium: #0A84FF;
+  --color-medium-bg: rgba(10, 132, 255, 0.15);
+  --color-low: #32D74B;
+  --color-low-bg: rgba(50, 215, 75, 0.15);
+  --color-done: #32D74B;
+  --color-done-bg: rgba(50, 215, 75, 0.15);
+  --color-review: #BF5AF2;
+  --color-review-bg: rgba(191, 90, 242, 0.15);
+  --color-deadline: #FF453A;
+  --color-deadline-bg: rgba(255, 69, 58, 0.15);
+  --color-calendar: #64D2FF;
+  --color-calendar-bg: rgba(100, 210, 255, 0.15);
+  --color-tag-bg: rgba(255, 255, 255, 0.05);
+  --color-tag-text: rgba(235, 235, 245, 0.6);
+  --color-progress-bg: rgba(255, 255, 255, 0.1);
 
-  --shadow-card: 0 1px 3px rgba(0,0,0,0.3);
-  --shadow-soft: none;
+  --shadow-card: 0 8px 32px rgba(0,0,0,0.4);
+  --shadow-soft: 0 4px 12px rgba(0,0,0,0.2);
 
-  --radius-card: 10px;
-  --radius-pill: 8px;
-  --radius-small: 6px;
-  --radius-input: 8px;
+  --radius-card: 16px;
+  --radius-pill: 24px;
+  --radius-small: 10px;
+  --radius-input: 12px;
 
-  --animation-pulse: 0 0 0 0 rgba(239, 68, 68, 0);
-  --animation-pulse-half: 0 0 8px rgba(239, 68, 68, 0.3);
-  --animation-sparkle: 0 0 0 0 rgba(34, 197, 94, 0);
-  --animation-sparkle-half: 0 0 8px rgba(34, 197, 94, 0.3);
+  --animation-pulse: 0 0 0 0 rgba(255, 69, 58, 0);
+  --animation-pulse-half: 0 0 12px rgba(255, 69, 58, 0.4);
 }
 
 html.light {
   /* Light theme - Apple HIG */
   --bg-app: #F5F5F7;
-  --bg-sidebar: #FAFAFA;
+  --bg-sidebar: rgba(255, 255, 255, 0.85);
   --bg-card: #FFFFFF;
   --bg-surface: #F2F2F7;
   --bg-surface-2: #E5E5EA;
   --bg-input: #F2F2F7;
   --bg-pill-bg: #F2F2F7;
-  --bg-column-header: #F2F2F7;
+  --bg-column-header: #F5F5F7;
   --bg-hover: #F2F2F7;
-  --bg-selected: #007AFF1F;
-  --bg-sidebar-selected: #007AFF1F;
+  --bg-selected: rgba(0, 122, 255, 0.1);
+  --bg-sidebar-selected: rgba(0, 0, 0, 0.05);
 
   --border-default: #E5E5EA;
   --border-card: #E5E5EA;
-  --border-soft: #E5E5EA;
-  --border-sidebar: #E5E5EA;
+  --border-soft: #F2F2F7;
+  --border-sidebar: rgba(0, 0, 0, 0.1);
   --border-input: transparent;
 
   --text-primary: #1C1C1E;
-  --text-secondary: #8E8E93;
-  --text-tertiary: #C7C7CC;
-  --text-disabled: #D1D1D6;
+  --text-secondary: rgba(60, 60, 67, 0.6);
+  --text-tertiary: rgba(60, 60, 67, 0.3);
+  --text-disabled: rgba(60, 60, 67, 0.18);
 
   --accent: #007AFF;
   --accent-hover: #0066D6;
 
-  /* System colors - Light (Apple official) */
+  /* System colors - Light */
   --color-urgent: #FF3B30;
-  --color-urgent-bg: #FF3B301F;
+  --color-urgent-bg: rgba(255, 59, 48, 0.1);
   --color-high: #FF9500;
-  --color-high-bg: #FF95001F;
+  --color-high-bg: rgba(255, 149, 0, 0.1);
   --color-medium: #007AFF;
-  --color-medium-bg: #007AFF1F;
+  --color-medium-bg: rgba(0, 122, 255, 0.1);
   --color-low: #34C759;
-  --color-low-bg: #34C7591F;
+  --color-low-bg: rgba(52, 199, 89, 0.1);
   --color-done: #34C759;
-  --color-done-bg: #34C7591F;
+  --color-done-bg: rgba(52, 199, 89, 0.1);
   --color-review: #AF52DE;
-  --color-review-bg: #AF52DE1F;
-  --color-deadline: #FF3B30;
-  --color-deadline-bg: #FF3B301F;
-  --color-calendar: #5AC8FA;
-  --color-calendar-bg: #5AC8FA1F;
+  --color-review-bg: rgba(175, 82, 222, 0.1);
   --color-tag-bg: #F2F2F7;
-  --color-tag-text: #8E8E93;
+  --color-tag-text: rgba(60, 60, 67, 0.6);
   --color-progress-bg: #E5E5EA;
 
-  --shadow-card: 0 2px 12px rgba(0,0,0,0.08);
-  --shadow-soft: 0 1px 4px rgba(0,0,0,0.04);
-
-  --radius-card: 12px;
-  --radius-pill: 20px;
-  --radius-small: 8px;
-  --radius-input: 10px;
-
-  --animation-pulse: 0 0 0 0 rgba(255, 59, 48, 0);
-  --animation-pulse-half: 0 0 8px rgba(255, 59, 48, 0.3);
-  --animation-sparkle: 0 0 0 0 rgba(52, 199, 89, 0);
-  --animation-sparkle-half: 0 0 8px rgba(52, 199, 89, 0.3);
+  --shadow-card: 0 4px 16px rgba(0,0,0,0.06);
+  --shadow-soft: 0 2px 8px rgba(0,0,0,0.04);
 }
 
-/* ── Global resets ─────────────────────────────────────────────────── */
-* { font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+/* ── Global resets & Utilities ────────────────────────────────────────── */
+* { 
+  font-family: -apple-system, 'SF Pro Text', BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+  -webkit-tap-highlight-color: transparent; 
+  box-sizing: border-box;
+}
 
-/* ── Keyframes (theme-aware) ───────────────────────────────────────── */
+body {
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  transition: background-color 0.4s ease, color 0.4s ease;
+  overflow-x: hidden;
+}
+
+/* ── Global Transitions & Performance ────────────────────────────── */
+.transition-smooth { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.transition-fast { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+.hover-lift { transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+.hover-lift:hover { transform: translateY(-2px); }
+.fade-in { animation: fadeIn 0.3s ease-out forwards; }
+.scale-in { animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+.will-change-transform { will-change: transform, opacity; }
+
+/* Optimized Glassmorphism Logic */
+.glass {
+  background: var(--bg-card);
+  backdrop-filter: blur(15px) saturate(180%);
+  -webkit-backdrop-filter: blur(15px) saturate(180%);
+  border: 0.5px solid var(--border-default);
+  box-shadow: var(--shadow-card);
+  will-change: transform, opacity;
+}
+
+.glass-sidebar {
+  background: var(--bg-sidebar);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-right: 0.5px solid var(--border-default);
+  will-change: transform;
+}
+
+.hairline {
+  border-width: 0.5px !important;
+}
+
+/* ── Keyframes ────────────────────────────────────────────────────── */
 @keyframes pulse-red {
   0%, 100% { box-shadow: var(--animation-pulse); }
   50% { box-shadow: var(--animation-pulse-half); }
 }
 
-@keyframes sparkle-green {
-  0%, 100% { box-shadow: var(--animation-sparkle); }
-  50% { box-shadow: var(--animation-sparkle-half); }
-}
-
-/* ── Scrollbar (both themes) ──────────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; }
+/* ── Scrollbar ─────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--text-tertiary); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--text-tertiary); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
-/* ── Mobile Responsiveness Utilities ──────────────────────────────── */
+/* ── View Transitions (Cinematic) ──────────────────────────────────── */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
 
+::view-transition-old(root) {
+  animation: 300ms cubic-bezier(0.4, 0, 1, 1) both fade-out;
+}
+
+::view-transition-new(root) {
+  animation: 600ms cubic-bezier(0.4, 0, 0.2, 1) both digital-wipe;
+}
+
+@keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes digital-wipe {
+  0% { clip-path: inset(0 0 100% 0); }
+  100% { clip-path: inset(0 0 0 0); }
+}
+
+/* Mobile-only and Desktop-only Layered Utilities */
 @layer utilities {
   .mobile-only { display: block; }
   .desktop-only { display: none; }
@@ -159,28 +202,4 @@ html.light {
     .mobile-only { display: none; }
     .desktop-only { display: block; }
   }
-
-  /* Glassmorphism mobile optimization (reduce blur for perf if needed) */
-  .mobile-glass {
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-  }
 }
-
-/* ── Global Responsive Refinements ────────────────────────────────── */
-@media (max-width: 767px) {
-  h1 { font-size: 1.25rem !important; }
-  h2 { font-size: 1.1rem !important; }
-  h3 { font-size: 1rem !important; }
-  
-  /* Increase touch targets for buttons on mobile */
-  button, select, input {
-    min-height: 32px;
-  }
-
-  /* Prevent body overflow when sidebar is open */
-  body.sidebar-open {
-    overflow: hidden;
-  }
-}
-

@@ -28,8 +28,8 @@ const shortcuts = [
 
 function App({ store }) {
   const [screen, setScreen] = useState('tasks')
-  const [sidebarOpen, setSidebarOpen] = useState(false) // Default closed on mobile, open on md
-  const [activityOpen, setActivityOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(true) 
+  const [activityOpen, setActivityOpen] = useState(false) 
   const { theme, toggle } = useTheme()
 
   const screens = {
@@ -44,98 +44,100 @@ function App({ store }) {
     system: <System />,
   }
 
-  useEffect(() => {
-    if (sidebarOpen) {
-      document.body.classList.add('sidebar-open')
-    } else {
-      document.body.classList.remove('sidebar-open')
-    }
-  }, [sidebarOpen])
-
   useKeyboard({
     ...(shortcuts.reduce((acc, s) => { acc[s.key] = () => setScreen(s.screen); return acc }, {})),
     n: () => document.querySelector('[data-new-task]')?.click(),
     e: () => store?.exportState(),
   })
 
+  const hasUnread = store?.state?.activity?.some(a => a.unread)
+
   return (
     <div className="flex h-screen font-mono relative overflow-hidden" style={{ background: 'var(--bg-app)', color: 'var(--text-primary)' }}>
-      {/* Mobile Backdrop Overlay (Sidebar) */}
-      {sidebarOpen && (
+      {/* Universal Header */}
+      <header className="fixed top-0 left-0 right-0 h-16 z-[60] flex items-center justify-between px-6 backdrop-blur-xl border-b border-default" 
+              style={{ background: 'var(--bg-app)', opacity: 0.95 }}>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setSidebarOpen(o => !o)}
+            className="p-2.5 rounded-xl transition-all hover:bg-surface border border-default shadow-sm active:scale-95"
+            style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+          >
+            <svg width="20" height="20" viewBox="0 0 20 20" className="transition-transform duration-300">
+               {sidebarOpen ? (
+                 <path d="M 3 16.5 L 17 2.5 M 3 2.5 L 17 16.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+               ) : (
+                 <path d="M 2 5 L 18 5 M 2 10 L 18 10 M 2 15 L 18 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+               )}
+            </svg>
+          </button>
+          <div className="flex flex-col">
+            <span className="text-[14px] font-bold tracking-tighter" style={{ color: 'var(--accent)' }}>MISSION CONTROL</span>
+            <span className="text-[9px] font-bold opacity-40 uppercase tracking-widest" style={{ color: 'var(--text-primary)' }}>{screen}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* Theme Toggle */}
+          <button
+            onClick={toggle}
+            className="p-2.5 rounded-xl transition-all hover:bg-surface border border-default shadow-sm active:scale-95 flex items-center justify-center overflow-hidden"
+            style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+          >
+            {theme === 'dark' ? (
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" className="fade-in">
+                <circle cx="12" cy="12" r="5" strokeWidth="2" />
+                <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            ) : (
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" className="fade-in">
+                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActivityOpen(o => !o)}
+            className="p-2.5 rounded-xl relative transition-all hover:bg-surface border border-default shadow-sm active:scale-95"
+            style={{ background: 'var(--bg-card)', color: 'var(--text-primary)' }}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            {hasUnread && (
+              <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-accent rounded-full border-2 border-card shadow-sm fade-in" style={{ background: 'var(--accent)', borderColor: 'var(--bg-card)' }} />
+            )}
+          </button>
+        </div>
+      </header>
+
+      {/* Backdrop for Mobile */}
+      {(sidebarOpen || activityOpen) && (
         <div 
-          className="fixed inset-0 bg-black/60 z-30 md:hidden backdrop-blur-sm transition-all"
-          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 bg-black/60 z-[50] md:hidden backdrop-blur-sm fade-in"
+          onClick={() => { setSidebarOpen(false); setActivityOpen(false); }}
         />
       )}
-
-      {/* Mobile Backdrop Overlay (Activity) */}
-      {activityOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 z-30 md:hidden backdrop-blur-sm transition-all"
-          onClick={() => setActivityOpen(false)}
-        />
-      )}
-
-      {/* Mobile Top Bar */}
-      <div className="md:hidden fixed top-0 left-0 right-0 h-14 z-40 flex items-center justify-between px-4" 
-           style={{ background: 'var(--bg-sidebar)', borderBottom: '1px solid var(--border-default)' }}>
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className="p-2 rounded-lg"
-          aria-label="Open sidebar"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-input)' }}
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--text-primary)' }}>
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
-        </button>
-        <span className="text-[12px] font-bold tracking-tighter text-[#19c3ff]">🦞 MISSION CONTROL</span>
-        <button
-          onClick={() => setActivityOpen(true)}
-          className="p-2 rounded-lg relative"
-          aria-label="Open activity feed"
-          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-input)' }}
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--text-primary)' }}>
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-          </svg>
-          {store?.state?.activity?.some(a => a.unread) && (
-            <span className="absolute top-1 right-1 w-2 h-2 bg-accent rounded-full animate-pulse border border-white"></span>
-          )}
-        </button>
-      </div>
-
 
       <Sidebar
         active={screen}
-        setActive={(s) => { setScreen(s); setSidebarOpen(false); }}
+        setActive={(s) => { setScreen(s); if (window.innerWidth < 768) setSidebarOpen(false); }}
         isOpen={sidebarOpen}
         toggle={() => setSidebarOpen(o => !o)}
       />
 
-      <div className="flex-1 flex flex-col overflow-hidden pt-14 md:pt-0">
-        <div className="flex-1 p-4 md:p-8 overflow-auto">
-          {screens[screen] || <div style={{ color: 'var(--text-tertiary)' }}>Coming soon: {screen}</div>}
+      <main className="flex-1 flex flex-col overflow-hidden pt-16 min-w-0 transition-all duration-300">
+        <div className="flex-1 p-6 md:p-10 overflow-auto no-scrollbar">
+          <div key={screen} className="h-full fade-in">
+             {screens[screen] || <div style={{ color: 'var(--text-tertiary)' }}>Component not found: {screen}</div>}
+          </div>
         </div>
-      </div>
-
-      {/* Theme Toggle */}
-      <button
-        onClick={toggle}
-        className="fixed bottom-6 right-6 z-50 p-3 rounded-full transition-all hover:scale-110 shadow-lg"
-        style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)' }}
-        aria-label="Toggle theme"
-        title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-      >
-        <span style={{ fontSize: '18px' }}>{theme === 'dark' ? '☀️' : '🌙'}</span>
-      </button>
+      </main>
 
       <ActivityFeed isOpen={activityOpen} toggle={() => setActivityOpen(o => !o)} />
-
     </div>
   )
 }
-
 
 export { shortcuts }
 export default App
