@@ -29,13 +29,18 @@ SERVICE_KEY  = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJl
 ---
 
 ## ✅ FETCH PENDING TASKS (pick next task)
+⚠️ **ALWAYS use `-G --data-urlencode`** — the `&` in URLs is eaten by the shell if you embed it directly.
 ```bash
-curl -s \
-  "https://pzasaxdmufmhrxdppsbk.supabase.co/rest/v1/tasks?select=*&assignee=eq.aria&status=eq.pending&order=created_at.asc&limit=1" \
+curl -s -G "https://pzasaxdmufmhrxdppsbk.supabase.co/rest/v1/tasks" \
+  --data-urlencode "select=*" \
+  --data-urlencode "assignee=eq.aria" \
+  --data-urlencode "status=eq.pending" \
+  --data-urlencode "order=created_at.asc" \
+  --data-urlencode "limit=1" \
   -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6YXNheGRtdWZtaHJ4ZHBwc2JrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTM5NzQ5NywiZXhwIjoyMDkwOTczNDk3fQ.ZqHBzMgj1Ot8yxl2nZfIdgk7PR0bmWWYp2YF8JyWePk" \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6YXNheGRtdWZtaHJ4ZHBwc2JrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTM5NzQ5NywiZXhwIjoyMDkwOTczNDk3fQ.ZqHBzMgj1Ot8yxl2nZfIdgk7PR0bmWWYp2YF8JyWePk"
 ```
-**If [] is returned** → no pending aria tasks exist. Check if tasks have `assignee=aria` and `status=pending`.
+**If [] is returned** → no `pending` tasks with `assignee=aria`. Tasks may exist with different status (backlog, in-progress).
 
 ---
 
