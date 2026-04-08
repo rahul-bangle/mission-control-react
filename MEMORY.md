@@ -70,7 +70,61 @@ _(updated 2026-04-08)_
 
 ---
 
+
+---
+
 ## 📋 Pending / Watching
 - FAANG PRD package (content_writer, high priority, due ASAP)
 - Aria live test task (aria, pending)
 - Cron auto-loop setup to be configured in `openclaw.json`
+
+---
+
+## ⚙️ OPERATING PROCEDURES (compact — full version in PROCEDURES.md)
+
+**STARTUP every restart:**
+1. Reset any `in-progress` aria tasks → `pending` (crash recovery)
+2. Heartbeat: POST `{status:"idle"}` to `live_activities`
+3. Fetch oldest `pending` aria task → start it
+
+**START TASK:** fetch → update status `in-progress` (verify 200) → heartbeat `working` → do work → COMPLETE TASK
+
+**COMPLETE TASK:** update status `done` (verify 200+row) → log activity entry (verify 201+id) → heartbeat `idle` → pick next task
+
+**CREATE TASK:** POST to `/rest/v1/tasks` with `Prefer: return=representation` → MUST see `id` in response or it failed
+
+**UPDATE TASK:** PATCH `/rest/v1/tasks?id=eq.TASK_ID` → only changed fields → verify returned row
+
+**LOG ACTIVITY:** POST to `/rest/v1/activities` → fields: `icon`, `action`, `type`, `time="just now"`, `unread=true` → verify `id` in response
+
+**HEARTBEAT:** POST to `/rest/v1/live_activities` → fields: `agent="aria"`, `status`, `current_task`, `timestamp`
+
+**SPAWN AGENT:** only when task needs parallel work, specialized model, or >2h deep work. Use `@coder-qwen`, `@reasoner-gemma`, `@second-brain`.
+
+**IF ERROR:** log exact error → retry once → if still fails → update task to `blocked` → alert Rahul
+
+---
+
+## 🔧 SUPABASE QUICK REFERENCE
+```
+URL   = https://pzasaxdmufmhrxdppsbk.supabase.co
+KEY   = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB6YXNheGRtdWZtaHJ4ZHBwc2JrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTM5NzQ5NywiZXhwIjoyMDkwOTczNDk3fQ.ZqHBzMgj1Ot8yxl2nZfIdgk7PR0bmWWYp2YF8JyWePk
+
+# Fetch my pending tasks
+GET  /rest/v1/tasks?select=*&assignee=eq.aria&status=eq.pending&order=created_at.asc
+
+# Create task (returns row on success)
+POST /rest/v1/tasks  +  Prefer: return=representation
+
+# Update task
+PATCH /rest/v1/tasks?id=eq.TASK_ID  +  Prefer: return=representation
+
+# Log activity
+POST /rest/v1/activities  +  Prefer: return=representation
+
+# Heartbeat
+POST /rest/v1/live_activities  +  Prefer: return=representation
+```
+All requests need: `apikey: KEY` + `Authorization: Bearer KEY` + `Content-Type: application/json`
+
+**IRON LAW: No `id` in response = write FAILED. Never confirm without seeing the returned row.**
