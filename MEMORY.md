@@ -1,114 +1,76 @@
-# MEMORY.md - Long-Term Memory
+# MEMORY.md — Aria's Persistent Long-Term Memory
+_Last updated: 2026-04-08_
 
-## 🧠 Memory System Rules (ALL AGENTS MUST FOLLOW)
+---
 
-### Rule 1: Immediate Write — No Mental Notes
-- Important decisions, corrections, new info → WRITE to MEMORY.md immediately
-- Don't wait for end-of-day review or heartbeat
-- If you learn something, write it NOW
-- "Mental notes" don't survive session restarts. Files do.
+## 🔒 ABSOLUTE MEMORY LAWS
 
-### Rule 2: Cross-Session Bridge
-- This file is the SINGLE SOURCE OF TRUTH across all sessions (Telegram, WebChat, Control UI, Coding groups, any bot)
-- Every session reads this file at startup
-- Every session MUST update this file when something important happens
-- No information silos — if it matters, it goes here
+1. **Write NOW** — important info goes to this file immediately, not "later"
+2. **Cross-session truth** — every session (Telegram, OpenClaw UI, Dashboard) reads this first
+3. **No mental notes** — mental notes die on session restart. Files don't.
+4. **Auto-commit after edit** — `git add -A && git commit -m "memory update"` (never push)
+5. **Context 80% alert** — if context hits 80%, alert Rahul immediately
+6. **Size limit** — keep under 5KB, prune outdated entries ruthlessly
+7. **No hallucinations** — NEVER confirm an action without seeing the actual API response
 
-### Rule 3: Auto-Commit After Every Change
-- After updating MEMORY.md or memory/*.md → `git add -A && git commit -m "memory update"`
-- Local only — NEVER push to GitHub
-- This ensures version history + backup
+---
 
-### Rule 4: Size Management
-- **MEMORY.md**: Keep under 5KB. Remove outdated info. Curate ruthlessly.
-- **memory/YYYY-MM-DD.md**: Keep for 30 days, then auto-delete
-- **memory/transcript-*.md**: Keep for 7 days, then auto-delete
-- Before deleting daily/transcript files → extract important info to MEMORY.md
+## 👤 About Rahul (Sonu)
+- APM aspirant — Sales/Customer Success → Product Management transition
+- Based in Hyderabad, India. NextLeap PM Fellow.
+- Target: EdTech / SaaS startups. No MBA — building portfolio instead.
+- AI name for him: "Sonu" or "Rahul". Communication style: Hinglish, direct, roast-friendly.
 
-### Rule 5: Context 80% Alert
-- If session context reaches 80% capacity → alert user immediately
-- Suggest: new session or context clear
+---
 
-## About Rahul
-- APM aspirant — transitioning from Sales/Customer Success → Product Management
-- Based in Hyderabad, India
-- Enrolled in NextLeap PM Fellowship
-- Target: EdTech / SaaS startups
-- No MBA — building portfolio instead
-- Also goes by "Sonu"
+## 🖥️ Tech Setup
+- Machine: Dell Inspiron 5559, i3-6100U, HDD, 16GB RAM, Windows 10 (SLOW hardware)
+- OpenClaw config: `C:\openclaw-data\openclaw.json`
+- Gateway token: `7589bc8cf6ebec69682e2063417c5476d72f15a70c1190db`
+- Gateway port: `18789`
+- Telegram bot: `@Openclaww_personalll_aii_bot`
+- Gateway WS path: `ws://127.0.0.1:18789/__openclaw__/ws`
+- Auth header: `Sec-WebSocket-Protocol: token,<TOKEN>`
 
-## Active Projects
-- **MissionControl React** — Shared workspace between Aria and Rahul. Both can create/track tasks, communicate, see pending/upcoming tasks, calendar. NOT a portfolio piece — it's our daily collaboration hub. Currently uses localStorage, needs Supabase for multi-device sync. (D:\Documents\mission-control-react)
-- **Jobs Automator** — FastAPI + React + Groq, auto-applies to jobs (D:\Documents\)
-- **PRD Template V4** — FAANG-style PRD, WIP
-- **PM Portfolio** — case studies + artifacts
 
-## Tech Setup
-- Dell Inspiron 5559, i3-6100U, HDD, 16GB RAM, Windows 10
-- OpenClaw config: E:\openclaw-data\openclaw.json
-- Telegram bot: @Openclaww_personalll_aii_bot
-- OpenClaw Browser: dark red Chrome profile (port 18800)
 
-### Models (18 total, 3 providers)
-**Active primary model (apr 6): Gemini 2.5 Flash (via Google AI Studio)**
-**Fallback chain: Qwen 3.6 Plus (OpenRouter) → Kimi K2 (Nvidia)**
-**Nvidia (6 free tier APIs):**
-- Kimi K2 → `kimi` alias
-- Phi-4 Mini → `phi` alias
-- DeepSeek-R1 → `r1` alias
-- Step 3.5 Flash → `flash` alias
-- Kimi K2 Thinking → `kimi-think` alias
-- Gemma 4 31B → `gemma` alias
-- Nemotron Nano 9B, 12B, 8B (agents / multimodal / backup)
-
-**OpenRouter (10 free models):**
-- Qwen 3.6 Plus (1M context) → `qwen` alias — PRIMARY model for Aria
-- Qwen3 Coder → `qwen-coder` alias
-- MiniMax M2.5 → `minimax` alias
-- DeepSeek V3.2 → `deepseek-v3` alias
-- Llama 3.3 70B → `llama-70b` alias
-- + 5 more (Gemma 3 12B, Mistral Nemo, GPT-oss-120B, Qwen3 Next 80B, Nemotron Nano 30B)
-
-### Agent Fleet (5 agents)
-1. **aria-main** → Qwen primary, fallbacks: Gemma-31B → Step Flash → DeepSeek V3.2 → Llama 70B
-2. **second-brain** → Gemma-31B primary, fallbacks: Qwen → Kimi K2 Thinking (think: high)
-3. **coder-qwen** → Qwen3 Coder primary, fallbacks: MiniMax → Nemotron 30B → Kimi K2
-4. **chat-fast** → Step Flash primary, fallbacks: Phi-4 → Nemotron 9B → Mistral Nemo (fast mode)
-5. **reasoner-gemma** → Gemma-31B primary, fallbacks: GPT-oss-120B → Qwen3 Next 80B → DeepSeek V3.2 → Kimi K2 Thinking (think: high)
-
-## Preferences
-- AI name: Aria 🦞
-- Communication: Hinglish, direct, roast-friendly
-- Responses: short unless detail needed
-- Hardware is slow — be efficient, avoid heavy processing
-- Commands/tool outputs: show final result only, no raw JSON or internal formats
-
-## Goals
-- Land APM role at EdTech/SaaS startup
-- Build strong PM portfolio without MBA
-- Grow LinkedIn visibility + do founder outreach
-
-## Technical Groups
-- **@Coding👨‍💻** - Technical Telegram group for coding discussions and debugging
-- Focus: pure technical content, code reviews, system design
-
-## Key Decisions & Lessons
-_(updated 2026-04-05)_
-1. MissionControl IS NOT portfolio — it's shared workspace (Apr 5)
-2. Skip Telegram bot advanced features — overengineering, not needed for APM goal
-3. Supabase is the bridge — localStorage → Supabase for MissionControl multi-device sync
-4. Memory system: Immediate write + auto-commit + 30-day rotation + no mental notes
-5. Git commit = backup local, NO GitHub push on memory files
-6. Context at 80% → alert Rahul immediately
-7. Session transcripts are temporary (7 days), daily notes (30 days), MEMORY.md is permanent
-
-## Supabase Details
-- Project: mission-control-react
-- URL: https://pzasaxdmufmhrxdppsbk.supabase.co
+## 🗄️ Supabase (Source of Truth)
+- URL: `https://pzasaxdmufmhrxdppsbk.supabase.co`
 - Region: Mumbai (ap-south-1)
-- Keys: saved in .env and TOOLS.md (NEVER commit)
-- Tables: 7 TBD (tasks, projects, events, team, memories, docs, activities)
-- SQL script: scripts/supabase-tables.sql (needs manual paste in Dashboard)
+- Anon key: in `TOOLS.md`
+- Service role key: in `TOOLS.md`
+- Tables: `tasks`, `activities`, `live_activities`, `team`, `memories`, `docs`, `projects`, `events`
+- **Dashboard is Supabase-only** — no REST endpoints exist on the gateway yet
 
-## Important People & Contacts
-_(to be filled as we go)_
+---
+
+## 🏗️ Active Projects
+| Project | Path | Status |
+|---|---|---|
+| MissionControl React | `C:\Users\rahul\.openclaw\workspace\mission-control-react` | Live on Vercel, Supabase-backed |
+| PRD Template V4 | workspace | WIP |
+| PM Portfolio | workspace | WIP |
+
+**MissionControl is NOT a portfolio piece** — it's Rahul and Aria's daily collaboration hub.
+
+---
+
+## 🔑 Key Decisions & Lessons
+_(updated 2026-04-08)_
+1. **Supabase-only dashboard** — no WS chat until gateway ships REST APIs
+2. **No REST endpoints** — `/agents`, `/sessions`, `/usage` etc. all return 404
+3. **Valid gateway config** — only `gateway.cron[]` works. `autoResumeTasks` and `gateway.mode` are invalid keys.
+4. **Write verification law** — every INSERT must use `.select('*').single()` and confirm returned ID
+5. **Hallucination confirmed** — Aria echoed task creation without calling Supabase (2026-04-08). Fix: always read-back.
+6. **Agent loop crash** — "listener invoked outside active run" = loop stopped, restart gateway to fix
+7. **Cron is the right loop** — `@gateway-start` fires on restart, `*/30 * * * *` keeps Aria working
+8. **Memory shared across sessions** — Telegram + OpenClaw UI = same MEMORY.md, same context, same cursor
+9. **localtunnel** URL changes every restart, ngrok not installed → tunnel not stable for Vercel
+10. **No overengineering** — kill complexity early, Supabase handles all coordination
+
+---
+
+## 📋 Pending / Watching
+- FAANG PRD package (content_writer, high priority, due ASAP)
+- Aria live test task (aria, pending)
+- Cron auto-loop setup to be configured in `openclaw.json`
