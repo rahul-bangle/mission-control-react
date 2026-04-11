@@ -15,8 +15,7 @@
 
 ## Active Projects
 - Jobs Automator: FastAPI + React + Groq — automates job applications
-- PRD Template V4: FAANG-style PRD, work in progress
-- PM Portfolio: building case studies and artifacts
+- - PM Portfolio: building case studies and artifacts
 
 ## Hardware Setup
 - Dell Inspiron 5559, Intel i3-6100U, HDD, Windows 10
