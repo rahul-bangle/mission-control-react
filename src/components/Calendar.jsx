@@ -1,6 +1,21 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTheme } from '../ThemeContext'
 import { useStore } from '../StoreContext'
+import { 
+  ChevronLeft, 
+  ChevronRight, 
+  Plus, 
+  X, 
+  Clock, 
+  Calendar as CalIcon, 
+  MoreHorizontal, 
+  CheckCircle2, 
+  AlertCircle,
+  Tag,
+  MapPin
+} from 'lucide-react';
+import { checkCollision } from '../utils/validation';
+import { TIME_OPTIONS, getAvailableTimes } from '../utils/constants';
 
 const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December']
 const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
@@ -70,7 +85,7 @@ export default function Calendar() {
   const [viewDate, setViewDate] = useState(() => { const now = new Date(); return { year: now.getFullYear(), month: now.getMonth(), day: now.getDate() } })
   const [selectedDay, setSelectedDay] = useState(null)
   const [showQuickAdd, setShowQuickAdd] = useState(false)
-  const [quickAddData, setQuickAddData] = useState({ title: '', time: '10:00 AM', type: 'meeting' })
+  const [quickAddData, setQuickAddData] = useState({ title: '', time: '10:00am', type: 'meeting' })
   const [viewMode, setViewMode] = useState('month')
   const [draggedTask, setDraggedTask] = useState(null)
   const [droppingOn, setDroppingOn] = useState(null)
@@ -84,6 +99,12 @@ export default function Calendar() {
   const isToday = (d) => {
     const n = new Date();
     return d.day === n.getDate() && d.month === n.getMonth() && d.year === n.getFullYear()
+  }
+  const isPastDay = (d) => {
+    const n = new Date();
+    const current = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+    const target = new Date(d.year, d.month, d.day);
+    return target < current;
   }
 
   const getEventsForDay = (d) => {
@@ -110,12 +131,56 @@ export default function Calendar() {
     setDroppingOn(null)
   }
 
+  const scrollCooldown = useRef(0)
+  const handleWheel = (e) => {
+    // Only allow month-scrolling logic in month view mode
+    if (viewMode !== 'month') return
+
+    const now = Date.now()
+    if (now - scrollCooldown.current < 400) return
+    if (Math.abs(e.deltaY) < 20) return
+
+    scrollCooldown.current = now
+    if (e.deltaY > 0) {
+      const d = new Date(viewDate.year, viewDate.month + 1, 1)
+      setViewDate({ year: d.getFullYear(), month: d.getMonth(), day: d.getDate() })
+    } else {
+      const d = new Date(viewDate.year, viewDate.month - 1, 1)
+      setViewDate({ year: d.getFullYear(), month: d.getMonth(), day: d.getDate() })
+    }
+  }
+
+  const handleQuickAdd = () => {
+    if (!quickAddData.title) return
+    const day = quickAddData.date || viewDate.day
+    const date = `${viewDate.year}-${String(viewDate.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    
+    const collision = checkCollision(tasks, events, date, quickAddData.time);
+    if (collision) {
+      alert(`Collision Detected: Already scheduled for ${collision.type} "${collision.title}"`);
+      return;
+    }
+
+    const newEvent = {
+      id: Date.now(),
+      title: quickAddData.title,
+      time: quickAddData.time,
+      type: quickAddData.type,
+      fullDate: `${viewDate.year}-${String(viewDate.month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+    }
+    
+    const updatedEvents = [...(state.events || []), newEvent]
+    store.patchState({ events: updatedEvents })
+    store.addActivity({ icon: '📅', action: `Quick Add: ${quickAddData.title}` })
+    setQuickAddData({ title: '', time: '10:00 AM', type: 'meeting' })
+  }
+
   const accent = isLight ? '#007AFF' : 'var(--accent)'
 
   return (
     <div className="flex flex-col h-full fade-in">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 px-2">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-2 gap-4 px-2">
         <div className="flex items-center gap-8">
            <div className="flex flex-col">
               <h1 className="text-[24px] font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>Calendar</h1>
@@ -151,7 +216,7 @@ export default function Calendar() {
           </div>
           <button 
             onClick={() => { const n = new Date(); setViewDate({ year: n.getFullYear(), month: n.getMonth(), day: n.getDate() }) }}
-            className="px-6 py-2.5 text-[11px] font-black rounded-[14px] border border-default hover:bg-surface/50 transition-all glass shadow-sm active:scale-95" 
+            className="px-6 py-2 text-[10px] font-black rounded border border-default hover:bg-surface/50 transition-all active:scale-95" 
             style={{ color: accent }}
           >
             TODAY
@@ -160,10 +225,10 @@ export default function Calendar() {
       </div>
 
       {/* Main View Area */}
-      <div className="flex-1 min-h-0 relative">
+      <div className="flex-1 min-h-0 relative" onWheel={handleWheel}>
         <div className={`h-full w-full transition-all duration-300`}>
           {viewMode === 'month' ? (
-            <div className="h-full flex flex-col bg-card rounded-[24px] border border-card overflow-hidden shadow-2xl glass">
+            <div className="h-full flex flex-col bg-card rounded-none border border-default overflow-hidden">
               <div className="grid grid-cols-7 border-b border-default bg-surface/20">
                 {dayNames.map(d => (
                   <div key={d} className="py-4 text-center text-[10px] font-bold tracking-[0.2em] text-tertiary uppercase">{d}</div>
@@ -185,34 +250,47 @@ export default function Calendar() {
                         if (taskId) handleDropOnDay(d);
                       }}
                       onClick={() => d.current && setSelectedDay({ ...d, events: dayEvents, tasks: dayTasks })}
-                      className="p-1 border-r border-b border-default relative group cursor-pointer transition-all hover:bg-white/[0.03]"
+                      className="p-1 border-r border-b border-default relative group cursor-pointer transition-all hover:bg-white/[0.03] min-h-[100px]"
                       style={{ 
                         background: isTodayCell ? `${accent}08` : (droppingOn === i ? 'rgba(255,255,255,0.05)' : 'transparent'),
                         boxShadow: droppingOn === i ? `inset 0 0 0 2px ${accent}40` : 'none'
                       }}>
-                      <div className="flex justify-between p-1.5 items-start">
-                        <span className={`text-[12px] font-semibold tabular-nums ${d.current ? 'text-primary' : 'text-disabled'}`}>{d.day}</span>
+                      <div className="flex justify-center p-1.5 items-center">
+                        <span className={`text-[12px] font-semibold tabular-nums ${d.current ? 'text-primary' : 'text-disabled'}`}>
+                          {d.day === 1 ? `${monthNames[d.month].slice(0, 3)} ${d.day}` : d.day}
+                        </span>
                         {isTodayCell && (
-                          <div className="w-1.5 h-1.5 rounded-full bg-accent" style={{ boxShadow: `0 0 10px ${accent}` }} />
-                        )}
-                      </div>
-                      <div className="space-y-1.5 px-1 pb-1 overflow-hidden">
-                        {dayTasks.slice(0, 3).map(t => (
-                          <div 
-                            key={t.id}
-                            draggable
-                            onDragStart={(e) => { setDraggedTask(t); e.dataTransfer.setData('taskId', t.id); }}
-                            onDragEnd={() => { setDraggedTask(null); setDroppingOn(null); }}
-                            className="px-2 py-1 rounded-lg text-[9px] font-bold truncate border shadow-sm cursor-grab active:cursor-grabbing transition-transform hover:scale-[1.02]"
-                            style={{ 
-                              background: getTaskColor(t, accent).bg, 
-                              color: getTaskColor(t, accent).color, 
-                              borderColor: `${getTaskColor(t, accent).color}40`,
-                            }}
-                          >
-                            {t.title}
+                          <div className="ml-2 w-5 h-5 rounded-full bg-accent flex items-center justify-center text-[10px] text-white shadow-lg" style={{ boxShadow: `0 0 10px ${accent}` }}>
+                            {d.day}
                           </div>
-                        ))}
+                        )}
+                        {isTodayCell && <style>{`.is-today-num { display: none; }`}</style>}
+                      </div>
+                      <div className="hidden">{isTodayCell && <span className="is-today-num">{d.day}</span>}</div>
+                      <div className="space-y-0.5 px-1.5 pb-1 overflow-hidden">
+                        {[...dayEvents, ...dayTasks].slice(0, 4).map((item, idx) => {
+                          const isTask = !!item.priority
+                          const tc = isTask ? getTaskColor(item, accent) : { color: accent }
+                          return (
+                            <div 
+                              key={item.id || idx}
+                              draggable
+                              onDragStart={(e) => { setDraggedTask(item); e.dataTransfer.setData('taskId', item.id); }}
+                              onDragEnd={() => { setDraggedTask(null); setDroppingOn(null); }}
+                              className="flex items-center gap-1.5 text-[10px] font-medium transition-colors hover:bg-surface/50 rounded px-1 py-0.5 cursor-grab active:cursor-grabbing truncate"
+                              style={{ color: 'var(--text-primary)' }}
+                            >
+                              <span className="text-[8px] flex-shrink-0" style={{ color: tc.color }}>●</span>
+                              {(item.time || item.dueTime) && <span className="opacity-40 flex-shrink-0 tabular-nums lowercase">{item.time || item.dueTime}</span>}
+                              <span className="truncate">{item.title}</span>
+                            </div>
+                          )
+                        })}
+                        {[...dayEvents, ...dayTasks].length > 4 && (
+                          <div className="text-[9px] font-black opacity-30 px-1 mt-1">
+                            +{[...dayEvents, ...dayTasks].length - 4} more
+                          </div>
+                        )}
                       </div>
                     </div>
                   )
@@ -220,7 +298,7 @@ export default function Calendar() {
               </div>
             </div>
           ) : viewMode === 'week' ? (
-            <div className="h-full flex flex-col bg-card rounded-[24px] border border-card overflow-hidden shadow-2xl glass">
+            <div className="h-full flex flex-col bg-card rounded-none border border-default overflow-hidden">
               <div className="flex border-b border-default bg-surface/20">
                 <div className="w-16 border-r border-default flex items-center justify-center text-[10px] font-bold text-tertiary tracking-widest">TIME</div>
                 <div className="flex-1 grid grid-cols-7">
@@ -255,35 +333,56 @@ export default function Calendar() {
                             const taskId = e.dataTransfer.getData('taskId');
                             if (taskId) handleDropOnDay(d);
                          }}
-                         className="h-full border-r border-default last:border-r-0 relative"
+                         className="h-full border-r border-slate-100 last:border-r-0 relative min-h-[1680px]"
                       >
-                        {isToday(d) && <div className="absolute inset-0 bg-accent/[0.03] pointer-events-none" />}
-                        {[...getEventsForDay(d), ...getTasksForDay(d)].map((item, idx) => {
-                          const offset = timeToOffset(item.time || '9:00 AM') || 9
-                          const isTask = !!item.priority
-                          const tc = isTask ? getTaskColor(item, accent) : { bg: `${accent}15`, color: accent }
+                        {isToday(d) && <div className="absolute inset-0 bg-blue-50/10 pointer-events-none" />}
+                        
+                        {/* Render Events */}
+                        {getEventsForDay(d).map(event => {
+                          const offset = timeToOffset(event.time) || 0;
                           return (
-                            <div 
-                              key={item.id || idx}
-                              draggable
-                              onDragStart={(e) => { setDraggedTask(item); e.dataTransfer.setData('taskId', item.id); }}
-                              onDragEnd={() => { setDraggedTask(null); setDroppingOn(null); }}
-                              className="absolute left-1.5 right-1.5 p-3 rounded-2xl border shadow-xl z-10 cursor-grab active:cursor-grabbing overflow-hidden group glass transition-transform hover:scale-[1.02]"
-                              style={{ 
-                                top: offset * 70 + 4, 
-                                height: 62, 
-                                background: tc.bg, 
-                                color: tc.color, 
-                                borderColor: `${tc.color}40`, 
-                                borderLeftWidth: 4 
+                            <div
+                              key={event.id}
+                              className="absolute left-1 right-1 rounded-lg p-2 text-[10px] font-bold overflow-hidden border border-slate-100 bg-white shadow-sm transition-all hover:shadow-md z-10"
+                              style={{
+                                top: (offset * 70) + 2,
+                                height: '60px',
+                                borderLeftColor: event.color || '#3b82f6',
+                                borderLeftWidth: '4px',
+                                color: '#1e293b'
                               }}
                             >
-                              <div className="text-[11px] font-bold truncate leading-tight">{item.title}</div>
-                              <div className="text-[9px] font-medium opacity-60 mt-1 flex items-center gap-1">
-                                <span>●</span> {item.time || (isTask ? 'TASK' : '')}
+                              <div className="flex items-center gap-1 mb-1">
+                                <Clock size={10} className="text-slate-400" />
+                                <span>{event.time}</span>
                               </div>
+                              <div className="truncate">{event.title}</div>
                             </div>
-                          )
+                          );
+                        })}
+
+                        {/* Render Tasks */}
+                        {getTasksForDay(d).map((task, idx) => {
+                          const offset = timeToOffset(task.dueTime) || 0;
+                          return (
+                            <div
+                              key={task.id}
+                              className="absolute left-1 right-1 rounded-lg p-2 text-[10px] font-bold overflow-hidden border border-slate-100 bg-white shadow-sm transition-all hover:shadow-md z-10"
+                              style={{
+                                top: task.dueTime ? (offset * 70) + 2 : (10 + idx * 35),
+                                height: task.dueTime ? '60px' : '30px',
+                                borderLeftColor: task.color || '#10b981',
+                                borderLeftWidth: '4px',
+                                color: '#1e293b'
+                              }}
+                            >
+                              <div className="flex items-center gap-1 mb-1">
+                                <Clock size={10} className="text-slate-400" />
+                                <span>{task.dueTime || 'No Time'}</span>
+                              </div>
+                              <div className="truncate">{task.title}</div>
+                            </div>
+                          );
                         })}
                       </div>
                     ))}
@@ -292,7 +391,7 @@ export default function Calendar() {
               </div>
             </div>
           ) : (
-            <div className="h-full flex flex-col bg-card rounded-2xl border overflow-hidden glass">
+            <div className="h-full flex flex-col bg-card rounded-none border border-default overflow-hidden shadow-none">
               <div className="p-6 overflow-y-auto space-y-8 custom-scrollbar">
                 <section>
                   <h3 className="text-[10px] font-bold text-accent tracking-[0.2em] uppercase mb-4">Agenda View</h3>
@@ -305,77 +404,177 @@ export default function Calendar() {
         </div>
       </div>
 
-      {/* Detail Overlay */}
+      {/* --- SaaS LEVEL MODAL: DAY DETAIL (Image 1 Style) --- */}
       {selectedDay && (
-        <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-md fade-in"
-          onClick={() => setSelectedDay(null)}
-        >
-          <div 
-            className="w-full max-w-lg bg-card rounded-3xl p-8 border border-default shadow-2xl scale-in"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-center mb-8">
-              <div>
-                <h2 className="text-2xl font-bold tracking-tight">{monthNames[selectedDay.month]} {selectedDay.day}</h2>
-                <p className="text-[11px] text-tertiary font-medium tracking-wide uppercase">Scheduled items</p>
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]" onClick={() => setSelectedDay(null)} />
+          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-400 overflow-hidden text-slate-900">
+            
+            {/* Header */}
+            <div className="p-6 border-b border-slate-50 flex items-center justify-between bg-white">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-slate-50 text-slate-600 flex items-center justify-center shadow-sm">
+                  <CalIcon size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900">
+                    {monthNames[viewDate.month]} {selectedDay.day}, {viewDate.year}
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium tracking-tight">Daily Schedule Overview</p>
+                </div>
               </div>
-              <button onClick={() => setSelectedDay(null)} className="p-2 hover:bg-surface rounded-xl transition-colors">✕</button>
+              <button onClick={() => setSelectedDay(null)} className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
+                <X size={20} />
+              </button>
             </div>
 
-            <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-              {[...selectedDay.events, ...selectedDay.tasks].map((item, i) => {
-                const isTask = !!item.priority
-                const tc = isTask ? getTaskColor(item, accent) : { bg: 'var(--bg-surface)', color: accent }
-                return (
-                  <div key={i} className="p-4 rounded-2xl border flex items-center gap-4 group transition-all hover:bg-surface/50" style={{ background: tc.bg, borderColor: 'var(--border-default)' }}>
-                    <div className="w-10 h-10 rounded-xl bg-card border flex items-center justify-center text-lg">{isTask ? '▣' : '📅'}</div>
-                    <div className="flex-1">
-                      <h4 className="text-[14px] font-bold">{item.title}</h4>
-                      <p className="text-[11px] text-tertiary">{item.time || (isTask ? item.status.toUpperCase() : 'EVENT')}</p>
+            {/* Content Area */}
+            <div className="p-8 min-h-[300px] flex flex-col items-center justify-center bg-white">
+              {[...selectedDay.events, ...selectedDay.tasks].length > 0 ? (
+                <div className="w-full space-y-4">
+                  {selectedDay.events.map(event => (
+                    <div key={event.id} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                      <div className="w-2 h-10 rounded-full bg-blue-500" />
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900">{event.title}</h4>
+                        <p className="text-xs text-slate-500">{event.time || 'All Day'}</p>
+                      </div>
                     </div>
+                  ))}
+                  {selectedDay.tasks.map(task => (
+                    <div key={task.id} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                      <div className="w-2 h-10 rounded-full bg-emerald-500" />
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900">{task.title}</h4>
+                        <p className="text-xs text-slate-500">Task • {task.dueTime || 'No Time'} • {task.priority}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center space-y-4">
+                  <div className="w-20 h-20 rounded-full bg-slate-50 flex items-center justify-center mx-auto border border-slate-100 shadow-sm">
+                    <CalIcon size={32} className="text-slate-300" />
                   </div>
-                )
-              })}
+                  <div>
+                    <h4 className="text-base font-bold text-slate-900">No activities planned</h4>
+                    <p className="text-sm text-slate-500 max-w-[240px] mx-auto leading-relaxed">
+                      This day is currently clear. Enjoy your time or add something new.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="mt-8 pt-6 border-t border-default flex gap-4">
-              <button onClick={() => setShowQuickAdd(true)} className="flex-1 py-4 rounded-2xl text-[12px] font-bold bg-accent text-white shadow-lg shadow-accent/20 hover:opacity-90 transition-all">ADD ENTRY</button>
-              <button onClick={() => setSelectedDay(null)} className="flex-1 py-4 rounded-2xl text-[12px] font-bold bg-surface border border-default">CLOSE</button>
+            {/* Footer */}
+            <div className="p-6 border-t border-slate-50 flex gap-4 bg-white">
+              {!isPastDay(selectedDay) && (
+                <button 
+                  onClick={() => {
+                    setQuickAddData(prev => ({ ...prev, date: selectedDay.day }));
+                    setShowQuickAdd(true);
+                    setSelectedDay(null);
+                  }}
+                  className="flex-1 py-4 bg-blue-600 text-white rounded-2xl text-sm font-bold hover:bg-blue-700 shadow-lg shadow-blue-500/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+                >
+                  <Plus size={18} /> Create Entry
+                </button>
+              )}
+              <button 
+                onClick={() => setSelectedDay(null)}
+                className={`flex-1 py-4 bg-white text-slate-600 border border-slate-200 rounded-2xl text-sm font-bold hover:bg-slate-50 transition-all ${isPastDay(selectedDay) ? 'w-full' : ''}`}
+              >
+                Close View
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Quick Add Modal */}
+      {/* --- SaaS LEVEL MODAL: QUICK ADD (Image 4 Style) --- */}
       {showQuickAdd && (
-        <div 
-          className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl fade-in"
-          onClick={() => setShowQuickAdd(false)}
-        >
-          <div 
-            className="w-full max-w-md bg-card rounded-3xl p-8 border border-default shadow-3xl scale-in"
-            onClick={e => e.stopPropagation()}
-          >
-            <h3 className="text-xl font-bold mb-6">⚡ Quick Add Event</h3>
-            <div className="space-y-4">
-              <input type="text" placeholder="What's the plan?" autoFocus 
-                value={quickAddData.title} onChange={e => setQuickAddData({...quickAddData, title: e.target.value})}
-                className="w-full px-5 py-4 rounded-2xl bg-surface border border-default text-[14px] outline-none focus:border-accent transition-all" />
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]" onClick={() => setShowQuickAdd(false)} />
+          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 animate-in slide-in-from-bottom-4 duration-300 overflow-hidden">
+            
+            <div className="p-6 border-b border-slate-50 flex items-center justify-between bg-white text-slate-900">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-sm">
+                  <Plus size={24} />
+                </div>
+                <h3 className="text-lg font-bold text-slate-900">New Schedule Entry</h3>
+              </div>
+              <button onClick={() => setShowQuickAdd(false)} className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-8 space-y-6 text-slate-900">
+              <div className="space-y-1.5">
+                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Event Title</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. Q2 Planning Session"
+                  value={quickAddData.title}
+                  onChange={e => setQuickAddData({...quickAddData, title: e.target.value})}
+                  className="w-full px-4 py-3.5 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/10 transition-all placeholder:text-slate-400"
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
-                <input type="text" placeholder="10:00 AM" value={quickAddData.time} onChange={e => setQuickAddData({...quickAddData, time: e.target.value})}
-                  className="px-5 py-4 rounded-2xl bg-surface border border-default text-[14px]" />
-                <select value={quickAddData.type} onChange={e => setQuickAddData({...quickAddData, type: e.target.value})}
-                  className="px-5 py-4 rounded-2xl bg-surface border border-default text-[14px]">
-                  <option value="meeting">Meeting</option>
-                  <option value="deadline">Deadline</option>
-                  <option value="review">Review</option>
-                </select>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Time</label>
+                  <div className="relative">
+                    <Clock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <select 
+                      value={quickAddData.time}
+                      onChange={e => setQuickAddData({...quickAddData, time: e.target.value})}
+                      className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-slate-50 border border-slate-200 text-sm font-black text-slate-900 appearance-none cursor-pointer"
+                    >
+                      {getAvailableTimes(`${viewDate.year}-${String(viewDate.month + 1).padStart(2, '0')}-${String(quickAddData.date || viewDate.day).padStart(2, '0')}`).map(t => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-400 uppercase tracking-widest ml-1">Type</label>
+                  <div className="relative">
+                    <Tag size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <select 
+                      value={quickAddData.type}
+                      onChange={e => setQuickAddData({...quickAddData, type: e.target.value})}
+                      className="w-full pl-12 pr-8 py-3.5 rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold text-slate-900 appearance-none cursor-pointer"
+                    >
+                      <option value="meeting">Meeting</option>
+                      <option value="review">Review</option>
+                      <option value="personal">Personal</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-blue-50/80 rounded-2xl border border-blue-100 flex items-start gap-4">
+                <AlertCircle size={20} className="text-blue-500 shrink-0 mt-0.5" />
+                <p className="text-[12px] text-blue-600 font-medium leading-relaxed">
+                  This event will be shared with the team leads and added to the collaborative workspace.
+                </p>
               </div>
             </div>
-            <div className="flex gap-4 mt-8">
-              <button onClick={() => setShowQuickAdd(false)} className="flex-1 py-4 rounded-2xl text-[12px] font-bold bg-surface">CANCEL</button>
-              <button onClick={() => { handleQuickAdd(); setShowQuickAdd(false); m}} className="flex-1 py-4 rounded-2xl text-[12px] font-bold bg-accent text-white shadow-xl shadow-accent/20">CREATE</button>
+
+            <div className="p-6 border-t border-slate-50 flex items-center justify-between bg-white">
+              <button 
+                onClick={() => setShowQuickAdd(false)}
+                className="text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors ml-4"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => { handleQuickAdd(); setShowQuickAdd(false); }}
+                className="px-10 py-4 bg-blue-600 text-white rounded-2xl text-sm font-bold hover:bg-blue-700 shadow-xl shadow-blue-500/20 active:scale-95 transition-all outline-none"
+              >
+                Create Event
+              </button>
             </div>
           </div>
         </div>

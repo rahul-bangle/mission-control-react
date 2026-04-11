@@ -56,17 +56,17 @@ export default function ActivityFeed({ isOpen, toggle }) {
     <aside 
       className={`fixed md:relative top-0 right-0 h-full z-[55] flex flex-col border-l flex-shrink-0 overflow-hidden transition-all duration-300 ease-in-out`}
       style={{ 
-        width: open ? (window.innerWidth < 768 ? '100%' : 320) : 0,
+        width: open ? (window.innerWidth < 768 ? '100%' : 240) : 0,
         opacity: open ? 1 : 0,
         background: 'var(--bg-sidebar)', 
         borderColor: 'var(--border-default)',
         pointerEvents: open ? 'auto' : 'none'
       }}
     >
-      <div className="w-[320px] h-full flex flex-col">
+      <div className="w-[240px] h-full flex flex-col">
         <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--border-default)' }}>
           <div className="flex items-center gap-2">
-            <button onClick={closeOrToggle} className="p-1 hover:bg-[var(--bg-hover)] rounded-lg transition-colors" aria-label="Close activity feed">
+            <button onClick={closeOrToggle} className="p-1 hover:bg-[var(--bg-hover)] rounded transition-colors" aria-label="Close activity feed">
               <XIcon />
             </button>
             <span className="text-[11px] font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>ACTIVITY FEED</span>
@@ -77,7 +77,7 @@ export default function ActivityFeed({ isOpen, toggle }) {
             )}
           </div>
           <div className="flex items-center gap-3">
-            <button onClick={toggleTheme} className="p-1.5 rounded-lg hover:bg-[var(--bg-hover)] transition-colors group active:scale-90" aria-label="Toggle theme">
+            <button onClick={toggleTheme} className="p-1.5 rounded-none hover:bg-[var(--bg-hover)] transition-colors group active:scale-90" aria-label="Toggle theme">
               {theme === 'dark' ? <Sun className="w-4 h-4 text-orange-400" /> : <Moon className="w-4 h-4 text-blue-500" />}
             </button>
           </div>
@@ -86,7 +86,7 @@ export default function ActivityFeed({ isOpen, toggle }) {
         <div className="px-4 py-2 border-b flex gap-1 overflow-x-auto no-scrollbar" style={{ borderColor: 'var(--border-default)' }}>
           {['all', 'task', 'deploy', 'comment', 'mention'].map(f => (
             <button key={f} onClick={() => setFilter(f)}
-              className="px-2 py-1 text-[9px] rounded-lg transition-all whitespace-nowrap font-medium active:scale-95"
+              className="px-2 py-1 text-[9px] rounded-none transition-all whitespace-nowrap font-medium active:scale-95"
               style={{ background: filter === f ? 'var(--bg-surface)' : 'transparent', color: filter === f ? accent : 'var(--text-tertiary)' }}>
               {f.toUpperCase()}
             </button>
@@ -112,20 +112,17 @@ export default function ActivityFeed({ isOpen, toggle }) {
               <div 
                 key={entry.id}
                 onClick={() => markAsRead(entry.id)}
-                className="py-3 px-3 rounded-xl cursor-pointer hover:bg-surface/60 transition-all border border-transparent hover:border-default mb-2 group fade-in will-change-transform"
-                style={{ background: 'var(--bg-card)', animationDelay: `${idx * 0.05}s` }}
+                className="py-2 px-2 transition-all border-b border-default/50 group fade-in"
+                style={{ animationDelay: `${idx * 0.05}s` }}
               >
-                <div className="flex items-start gap-4">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center text-[14px] font-bold flex-shrink-0 mt-0.5 border group-hover:scale-110 transition-transform"
+                <div className="flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-none flex items-center justify-center text-[12px] font-bold flex-shrink-0 mt-0.5 border"
                     style={{ background: tc.bg, color: tc.text, borderColor: `${tc.text}20` }}>
                     {entry.icon}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[12px] leading-snug font-medium" style={{ color: 'var(--text-primary)' }}>{entry.action}</p>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <span className="text-[9px] font-mono tracking-tighter" style={{ color: 'var(--text-tertiary)' }}>{entry.time}</span>
-                      <div className="w-1.5 h-1.5 rounded-full" style={{ background: accent }} />
-                    </div>
+                    <p className="text-[11px] leading-snug font-medium" style={{ color: 'var(--text-primary)' }}>{entry.action}</p>
+                    <span className="text-[8px] font-mono opacity-40 uppercase tracking-tighter" style={{ color: 'var(--text-tertiary)' }}>{entry.time}</span>
                   </div>
                 </div>
               </div>
@@ -140,7 +137,7 @@ export default function ActivityFeed({ isOpen, toggle }) {
               { val: unreadCount, label: 'Unread', color: accent },
               { val: `${readPct}%`, label: 'Ratio', color: 'var(--color-done)' }
             ].map((stat, i) => (
-              <div key={i} className="text-center p-2 rounded-xl border bg-surface/30" style={{ borderColor: 'var(--border-soft)' }}>
+              <div key={i} className="text-center p-2 rounded-sm border bg-surface/30" style={{ borderColor: 'var(--border-soft)' }}>
                 <div className="text-[13px] font-bold" style={{ color: stat.color }}>{stat.val}</div>
                 <div className="text-[8px] uppercase tracking-tighter font-bold" style={{ color: 'var(--text-tertiary)' }}>{stat.label}</div>
               </div>

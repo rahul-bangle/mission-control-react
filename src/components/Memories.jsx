@@ -63,9 +63,9 @@ export default function Memories() {
       <div className="flex flex-1 gap-0 md:gap-4 min-h-0 overflow-hidden relative">
         {/* Sidebar list */}
         <div className={`
-          w-full md:w-80 flex-shrink-0 flex flex-col rounded-xl overflow-hidden transition-all duration-300
+          w-full md:w-80 flex-shrink-0 flex flex-col overflow-hidden transition-all duration-300
           ${selected ? 'hidden md:flex' : 'flex'}
-        `} style={{ background: 'var(--bg-sidebar)', border: '1px solid var(--border-card)' }}>
+        `} style={{ background: 'var(--bg-sidebar)', border: '1px solid var(--border-default)' }}>
           <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: 'var(--border-default)' }}>
             <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: 'var(--text-secondary)' }}>Timeline</span>
             <span className="text-[10px] font-bold text-accent">{filteredMemories.length} ENTRIES</span>
@@ -88,10 +88,10 @@ export default function Memories() {
 
         {/* Detail panel */}
         <div className={`
-          flex-1 md:rounded-xl overflow-hidden transition-all duration-300
+          flex-1 overflow-hidden transition-all duration-300
           fixed inset-0 z-[60] md:relative md:inset-auto md:z-auto md:flex
           ${selected ? 'translate-x-0 opacity-100 flex' : 'translate-x-full opacity-0 md:translate-x-0 md:opacity-100 hidden'}
-        `} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-card)', boxShadow: 'var(--shadow-card)' }}>
+        `} style={{ background: 'var(--bg-card)', border: '1px solid var(--border-default)' }}>
           {selected ? (
             <div className="h-full flex flex-col w-full">
               <div className="p-4 md:p-6 border-b flex items-center justify-between" style={{ borderColor: 'var(--border-default)', background: 'var(--bg-surface)/30' }}>
@@ -160,14 +160,14 @@ export default function Memories() {
 function MemoryItem({ memory, selected, onClick }) {
   const cat = categories[memory.category] || categories.work
   return (
-    <div onClick={onClick} className="p-3 rounded-xl cursor-pointer transition-all mb-2 group relative border"
+    <div onClick={onClick} className="p-2.5 transition-all mb-1 group relative border-b border-default/30"
       style={{ 
         background: selected ? 'var(--bg-selected)' : 'transparent',
         borderColor: selected ? `${cat.color}40` : 'transparent'
       }}>
       <div className="flex items-start gap-3">
         <div className="w-1.5 h-full absolute left-0 top-0 rounded-l-xl transition-all" style={{ background: selected ? cat.color : 'transparent' }} />
-        <div className="w-10 h-10 rounded-lg flex items-center justify-center text-[14px] flex-shrink-0 border bg-surface/50 group-hover:scale-105 transition-transform" 
+        <div className="w-8 h-8 rounded flex items-center justify-center text-[12px] flex-shrink-0 border bg-surface/50 group-hover:scale-105 transition-transform" 
              style={{ color: cat.color, borderColor: `${cat.color}20` }}>
           {memory.category === 'idea' ? '💡' : memory.category === 'work' ? '💼' : memory.category === 'personal' ? '👤' : '📝'}
         </div>

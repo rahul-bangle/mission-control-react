@@ -41,7 +41,7 @@ export default function Projects() {
               <h1 className="text-[24px] font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>Projects</h1>
               <span className="text-[10px] font-bold text-tertiary uppercase tracking-widest leading-loose">Mission Management</span>
            </div>
-          <div className="flex p-1 rounded-xl bg-surface/30 border border-default glass shadow-sm">
+          <div className="flex p-0.5 rounded-lg bg-surface/30 border border-default">
             {['all', 'active', 'completed'].map(f => (
               <button key={f} onClick={() => setFilter(f)}
                 className={`relative px-5 py-1.5 text-[10px] font-black rounded-lg transition-all z-10 ${filter === f ? 'shadow-lg' : ''}`}
@@ -56,7 +56,7 @@ export default function Projects() {
         </div>
         <div className="flex items-center gap-4">
           <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-            className="px-5 py-3 text-[11px] font-bold rounded-[14px] bg-surface/30 border border-default outline-none focus:border-accent transition-all glass cursor-pointer"
+            className="px-4 py-2 text-[10px] font-bold rounded-lg bg-surface/30 border border-default outline-none focus:border-accent transition-all cursor-pointer"
             style={{ color: 'var(--text-primary)' }}>
             <option value="progress">SORT BY PROGRESS</option>
             <option value="name">SORT BY NAME</option>
@@ -75,7 +75,7 @@ export default function Projects() {
         {filteredProjects.map((p, idx) => (
           <div 
             key={p.id}
-            className="rounded-[24px] overflow-hidden flex flex-col glass border border-card cursor-pointer group shadow-lg transition-all hover-lift will-change-transform fade-in"
+            className="rounded-[var(--radius-card)] overflow-hidden flex flex-col border border-card cursor-pointer group transition-all fade-in"
             style={{ background: 'var(--bg-sidebar)', animationDelay: `${idx * 0.05}s` }}
           >
             <div className="p-7 flex-1 flex flex-col">
@@ -103,24 +103,24 @@ export default function Projects() {
                   <span className="text-[10px] font-black text-tertiary uppercase tracking-[0.15em]">Health Score</span>
                   <span className="text-[12px] font-black" style={{ color: accent }}>{p.progress}%</span>
                 </div>
-                <div className="h-2 rounded-full bg-surface/30 overflow-hidden border border-default/50 glass">
+                <div className="h-1.5 rounded-full bg-surface/30 overflow-hidden border border-default/50">
                   <div 
-                    className="h-full rounded-full shadow-[0_0_12px_rgba(0,122,255,0.3)] transition-all duration-1000" 
+                    className="h-full rounded-full transition-all duration-1000" 
                     style={{ background: accent, width: `${p.progress}%` }} />
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4 mb-8">
-                <div className="p-3.5 rounded-[20px] bg-surface/20 border border-default/30 text-center glass group-hover:bg-accent/5 transition-colors">
-                  <div className="text-[14px] font-black text-primary">{p.tasks.completed}/{p.tasks.total}</div>
+              <div className="grid grid-cols-3 gap-3 mb-6">
+                <div className="p-2.5 rounded-lg bg-surface/20 border border-default/30 text-center group-hover:bg-accent/5 transition-colors">
+                  <div className="text-[12px] font-black text-primary">{p.tasks.completed}/{p.tasks.total}</div>
                   <div className="text-[8px] font-black text-tertiary tracking-tighter uppercase mt-0.5">Tasks</div>
                 </div>
-                <div className="p-3.5 rounded-[20px] bg-surface/20 border border-default/30 text-center glass group-hover:bg-accent/5 transition-colors">
-                  <div className="text-[14px] font-black text-primary">{p.members}</div>
+                <div className="p-2.5 rounded-lg bg-surface/20 border border-default/30 text-center group-hover:bg-accent/5 transition-colors">
+                  <div className="text-[12px] font-black text-primary">{p.members}</div>
                   <div className="text-[8px] font-black text-tertiary tracking-tighter uppercase mt-0.5">Team</div>
                 </div>
-                <div className="p-3.5 rounded-[20px] bg-surface/20 border border-default/30 text-center glass group-hover:bg-accent/5 transition-colors">
-                  <div className="text-[14px] font-black text-primary">{p.daysLeft}d</div>
+                <div className="p-2.5 rounded-lg bg-surface/20 border border-default/30 text-center group-hover:bg-accent/5 transition-colors">
+                  <div className="text-[12px] font-black text-primary">{p.daysLeft}d</div>
                   <div className="text-[8px] font-black text-tertiary tracking-tighter uppercase mt-0.5">Delta</div>
                 </div>
               </div>
